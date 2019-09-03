@@ -71,7 +71,7 @@ $.fn.reload_module = function (c) {
         })(this)
         //   }
     })
-}
+};
 $.fn.dataset = function (dataset, val) {
     var el = this[0];
     if (el === undefined) return false;
@@ -84,7 +84,8 @@ $.fn.dataset = function (dataset, val) {
         !!el.dataset ? el.dataset[_dataset] = val : mw.$(el).attr("data-" + dataset, val);
         return mw.$(el);
     }
-}
+};
+
 String.prototype._exec = function (a, b, c) {
     var a = a || "";
     var b = b || "";
@@ -105,10 +106,10 @@ String.prototype._exec = function (a, b, c) {
         }
         return mw.is.func(temp) ? temp(a, b, c) : temp;
     }
-}
+};
 mw.exec = function (str, a, b, c) {
     return str._exec(a, b, c);
-}
+};
 String.prototype.endsWith = function (str) {
     return this.indexOf(str, this.length - str.length) !== -1;
 };
@@ -140,6 +141,25 @@ if (!window.escape) {
     };
 }
 mw.tools = {
+    elementOptions: function(el) {
+        var opt = ( el.dataset.options || '').trim().split(','), final = {};
+        if(!opt[0]) return final;
+        $.each(opt, function(){
+            var arr = this.split(':');
+            var val = arr[1].trim();
+            if(!val){
+
+            }
+            else if(val === 'true' || val === 'false'){
+                val = val === 'true';
+            }
+            else if(!/\D/.test(val)){
+                val = parseInt(val, 10);
+            }
+            final[arr[0].trim()] = val;
+        });
+        return final;
+    },
     createAutoHeight: function() {
         if(window.thismodal && thismodal.iframe) {
             mw.tools.iframeAutoHeight(thismodal.iframe, 'now');
@@ -167,22 +187,34 @@ mw.tools = {
         o2.height = el2.height();
         return (o1.left < o2.left + o2.width  && o1.left + o1.width  > o2.left &&  o1.top < o2.top + o2.height && o1.top + o1.height > o2.top);
     },
-    iframeAutoHeight:function(frame, mode){
-        mode = mode || 'onload';
+    iframeAutoHeight:function(frame){
+
         frame = mw.$(frame)[0];
         if(!frame) return;
 
+        var _detector = document.createElement('div');
+        _detector.className = 'mw-iframe-auto-height-detector';
+        _detector.id = mw.id();
 
+        var insertDetector = function() {
+            if(frame.contentWindow && frame.contentWindow.document && frame.contentWindow.document.body){
+                var det = frame.contentWindow.document.querySelector('.mw-iframe-auto-height-detector');
+                if(!det){
+                    frame.contentWindow.document.body.appendChild(_detector);
+                } else if(det !== frame.contentWindow.document.body.lastChild){
+                    frame.contentWindow.document.body.appendChild(det);
+                }
+            }
 
+        };
 
-
-
-
+        setTimeout(function(){
+            insertDetector();
+        }, 100);
 
         frame.scrolling="no";
         frame.style.minHeight = 0 + 'px';
         mw.$(frame).on('load resize', function(){
-
 
             if(!mw.tools.canAccessIFrame(frame)) {
                 console.log('Iframe can not be accessed.', frame);
@@ -195,45 +227,21 @@ mw.tools = {
                 return;
             }
 
-            var _detector = document.createElement('div');
-            _detector.className = 'mw-iframe-auto-height-detector';
-            _detector.id = mw.id();
-
-            var insertDetector = function() {
-                if(!frame.contentWindow.document.querySelector('.mw-iframe-auto-height-detector')){
-                    frame.contentWindow.document.body.appendChild(_detector);
-                }
-            };
-
-            if(mode === 'now'){
-                setTimeout(function(){
-                    insertDetector();
-                }, 100);
-            }
-
-
-
-            if(mode === 'onload'){
-                setTimeout(function(){
-                    insertDetector();
-                }, 100);
-            }
-            frame._int = setInterval(function(){
-                if(frame.parentNode && frame.contentWindow && frame.contentWindow.$){
-                    var offTop = frame.contentWindow.$(_detector).offset().top;
-                    if(offTop && offTop !== frame._currHeight){
-                        frame._currHeight = offTop;
-                        frame.style.height = offTop + 'px';
-                        mw.$(frame).trigger('bodyResize');
-                    }
-                }
-                else {
-                    clearInterval(frame._int);
-                }
-            }, 77);
-
-
+            insertDetector();
         });
+        frame._int = setInterval(function(){
+            if(frame.parentNode && frame.contentWindow && frame.contentWindow.$){
+                var offTop = frame.contentWindow.$(_detector).offset().top;
+                if(offTop && offTop !== frame._currHeight){
+                    frame._currHeight = offTop;
+                    frame.style.height = offTop + 'px';
+                    mw.$(frame).trigger('bodyResize');
+                }
+            }
+            else {
+                //clearInterval(frame._int);
+            }
+        }, 77);
 
     },
     distance: function (x1, y1, x2, y2) {
@@ -2516,7 +2524,7 @@ mw.tools = {
         else {
             mw.$(arr).each(function () {
                 var el = mw.$(this);
-                if (el.css('display') == 'none') {
+                if (el.css('display') === 'none') {
                     el.show();
                 }
                 else {
@@ -4590,6 +4598,32 @@ $.fn.visibilityDefault = function () {
 $.fn.invisible = function () {
     return this.css("visibility", "hidden").css("opacity", "0");
 };
+
+$.fn.mwDialog = function(conf){
+    var el = this[0];
+    var options = mw.tools.elementOptions(el);
+    var id = mw.id('mwDialog-');
+    var idEl = mw.id('mwDialogTemp-');
+    var defaults = {
+        height: 'auto',
+        autoHeight: true,
+        width: 'auto'
+    };
+    var settings = $.extend({}, defaults, options, conf);
+    $(el).before('<mw-dialog-temp id="'+idEl+'"></mw-dialog-temp>');
+    var dialog = mw.dialog(settings);
+    dialog.dialogContainer.appendChild(el);
+    $(el).show();
+    if(settings.width === 'auto'){
+        dialog.width($(el).width);
+        dialog.center($(el).width);
+    }
+    $(dialog).on('BeforeRemove', function(){
+        mw.$('#' + idEl).replaceWith(el);
+        $(el).hide()
+    });
+    return this;
+};
 mw.which = function (str, arr_obj, func) {
     if (arr_obj instanceof Array) {
         var l = arr_obj.length, i = 0;
@@ -5621,7 +5655,7 @@ mw.modal = function (o) {
         var modal = undefined;
     }
     return modal;
-}
+};
 mw.modalFrame = function (o) {
     var modal = mw.tools.modal.frame(o);
     if (!!modal && (typeof(modal.main) != "undefined")) {
@@ -5643,17 +5677,25 @@ mw._colorPickerDefaults = {
 mw._colorPicker = function (options) {
     if (!mw.tools.colorPickerColors) {
         mw.tools.colorPickerColors = [];
-        top.mw.$("body *").each(function () {
-            var css = parent.getComputedStyle(this, null);
-            if (css !== null) {
-                if (mw.tools.colorPickerColors.indexOf(css.color) === -1) {
-                    mw.tools.colorPickerColors.push(mw.color.rgbToHex(css.color))
+        var w = window;
+        if(self != top){
+            w = top;
+        }
+        var colorpicker_els = w.mw.$("body *");
+        if(typeof colorpicker_els != 'undefined' && colorpicker_els.length > 0){
+            colorpicker_els.each(function () {
+                var css = parent.getComputedStyle(this, null);
+                if (css !== null) {
+                    if (mw.tools.colorPickerColors.indexOf(css.color) === -1) {
+                        mw.tools.colorPickerColors.push(mw.color.rgbToHex(css.color))
+                    }
+                    if (mw.tools.colorPickerColors.indexOf(css.backgroundColor) === -1) {
+                        mw.tools.colorPickerColors.push(mw.color.rgbToHex(css.backgroundColor))
+                    }
                 }
-                if (mw.tools.colorPickerColors.indexOf(css.backgroundColor) === -1) {
-                    mw.tools.colorPickerColors.push(mw.color.rgbToHex(css.backgroundColor))
-                }
-            }
-        });
+            });
+        }
+
     }
     var proto = this;
     if (!options) {

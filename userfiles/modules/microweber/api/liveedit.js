@@ -405,27 +405,26 @@ setTimeout(function(){
 
 mw.drag = {
     create_columns: function(selector, $numcols) {
-
         if (!$(selector).hasClass("active")) {
 
-            mw.$(mw.drag.columns.resizer).hide()
+            mw.$(mw.drag.columns.resizer).hide();
 
             var id = mw._activeRowOver.id;
 
-            mw.$(selector).addClass("active")
-            var $el_id = id != '' ? id : mw.settings.mw - row_id;
+            mw.$(selector).addClass("active");
+            var $el_id = id !== '' ? id : mw.settings.mw - row_id;
 
             mw.settings.sortables_created = false;
             var $exisintg_num = mw.$('#' + $el_id).children(".mw-col").length;
 
-            if ($numcols == 0) {
-                var $numcols = 1;
+            if ($numcols === 0) {
+                $numcols = 1;
             }
-            var $numcols = parseInt($numcols);
-            if ($exisintg_num == 0) {
+            $numcols = parseInt($numcols);
+            if ($exisintg_num === 0) {
                 $exisintg_num = 1;
             }
-            if ($numcols != $exisintg_num) {
+            if ($numcols !== $exisintg_num) {
                 if ($numcols > $exisintg_num) { //more columns
                     var i = $exisintg_num;
                     for (; i < $numcols; i++) {
@@ -439,12 +438,11 @@ mw.drag = {
                 } else { //less columns
                     var $cols_to_remove = $exisintg_num - $numcols;
                     if ($cols_to_remove > 0) {
-
                         var fragment = document.createDocumentFragment(),
                             last_after_remove;
 
                         mw.$('#' + $el_id).children(".mw-col").each(function(i) {
-                            if (i == ($numcols - 1)) {
+                            if (i === ($numcols - 1)) {
                                 last_after_remove = mw.$(this);
 
                             } else {
@@ -479,7 +477,7 @@ mw.drag = {
                     }
                 }
 
-                var $exisintg_num = mw.$('#' + $el_id).children(".mw-col").size();
+                $exisintg_num = mw.$('#' + $el_id).children(".mw-col").size();
                 var $eq_w = 100 / $exisintg_num;
                 var $eq_w1 = $eq_w;
                 mw.$('#' + $el_id).children(".mw-col").width($eq_w1 + '%');
@@ -502,7 +500,7 @@ mw.drag = {
           position:'relative'
         })
         .animate({top:prevOff.top - thisOff.top}, function(){
-          if(dir == 'prev'){
+          if(dir === 'prev'){
             prev.before(el);
           }
           else{
@@ -653,7 +651,6 @@ mw.drag = {
       }
 
     },
-    dropOutsideDistance: 25,
     columnout: false,
     noop: mwd.createElement('div'),
     create: function() {
@@ -707,12 +704,10 @@ mw.drag = {
                     }
                 } else {
                     mw.ea.data.currentGrabbed = mw.dragCurrent;
-                    //if( (mw.emouse.x+mw.emouse.y) % 2 === 0 ) {
-                        mw.tools.removeClass(this, 'isTyping');
-                        mw.ea.interactionAnalizer(event);
-                        mw.$(".currentDragMouseOver").removeClass("currentDragMouseOver");
-                        mw.$(mw.currentDragMouseOver).addClass("currentDragMouseOver");
-                    //}
+                    mw.tools.removeClass(this, 'isTyping');
+                    mw.ea.interactionAnalizer(event);
+                    mw.$(".currentDragMouseOver").removeClass("currentDragMouseOver");
+                    mw.$(mw.currentDragMouseOver).addClass("currentDragMouseOver");
                 }
             }
         });
@@ -722,7 +717,6 @@ mw.drag = {
         mw.drag.fixes();
 
         mw.$(mwd.body).on('mouseup touchend', function(event) {
-
             mw.mouseDownStarted = false;
             if (mw.isDrag && mw.dropable.is(":hidden")) {
                 mw.$(".ui-draggable-dragging").css({
@@ -732,10 +726,8 @@ mw.drag = {
             }
             mw.$(this).removeClass("not-allowed");
         });
-
         mw.$(mwd.body).on('mousedown touchstart', function(event) {
             var target = event.target;
-
             if ($(target).hasClass("image_free_text")) {
                 mw.image._dragcurrent = target;
                 mw.image._dragparent = target.parentNode;
@@ -754,21 +746,14 @@ mw.drag = {
                 if(!mw.settings.live_edit_open_module_settings_in_sidebar){
                     mw.drag.module_settings(mw.tools.firstParentOrCurrentWithAnyOfClasses(event.target, ['module']))
                 } else {
-
-
-                        //var id = mwd.tools.firstParentWithClass(event.target, 'module').id;
                     var target = mw.tools.firstParentWithClass(event.target, 'module') ;
                     mw.liveNodeSettings.set('module', target);
-                    //mw.liveNodeSettings.set('module', event.target);
                 }
             }
 
             if (!mw.tools.hasParentsWithTag(event.target, 'TABLE') && !mw.tools.hasParentsWithClass(event.target, 'mw-inline-bar')) {
                 mw.$(mw.inline.tableControl).hide();
                 mw.$(".tc-activecell").removeClass('tc-activecell');
-            }
-            if (!mw.isDrag && mw.tools.hasClass(target, 'mw-empty')) {
-
             }
         });
 
@@ -823,9 +808,6 @@ mw.drag = {
                 }
             });
 
-
-
-
             mw.$(mw.handle_item).draggable({
                 cursorAt: {
                     top: -30
@@ -845,13 +827,8 @@ mw.drag = {
                     mw.$(mwd.body).removeClass("dragStart");
                 }
             });
-
         }
         mw.drag.the_drop();
-
-
-
-
     },
     properFocus: function(event) {
         if (mw.tools.hasClass(event.target, 'mw-row') || mw.tools.hasClass(event.target, 'mw-col')) {
@@ -865,11 +842,11 @@ mw.drag = {
                     var _cleft = mw.$(cols[i]).offset().left;
                     var ePos = mw.event.page(event);
                     if (_cleft < ePos.x && (_cleft + cols[i].clientWidth) > ePos.x) {
-                        var tofocus = cols[i].querySelector('.mw-col-container');
+                        tofocus = cols[i].querySelector('.mw-col-container');
                         if (tofocus === null) {
                             cols[i].innerHTML = '<div class="mw-col-container">' + cols[i].innerHTML + '</div>';
                         }
-                        var tofocus = cols[i].querySelector('.mw-col-container');
+                        tofocus = cols[i].querySelector('.mw-col-container');
                         break;
                     }
                 }
@@ -887,7 +864,6 @@ mw.drag = {
                 range.collapse(false);
                 sel.removeAllRanges();
                 sel.addRange(range);
-
             }
         }
     },
@@ -918,7 +894,7 @@ mw.drag = {
                 }, 200);
             }
         });
-        mw.$(items).mouseenter(function() {
+        mw.$(items).on('mouseenter touchstart', function() {
             mw.$(this).draggable("option", "helper", function() {
                 var clone = mw.$(this).clone(true);
                 clone.appendTo(mwd.body);
@@ -953,7 +929,7 @@ mw.drag = {
             mw.$(mwd.body).on("mouseup touchend", function(event) {
                 mw.image._dragcurrent = null;
                 mw.image._dragparent = null;
-                var sliders = mwd.getElementsByClassName("canvas-slider"),cam
+                var sliders = mwd.getElementsByClassName("canvas-slider"),
                     len = sliders.length,
                     i = 0;
                 for (; i < len; i++) {
@@ -969,14 +945,6 @@ mw.drag = {
                         'element',
                         'safe-element',
                         'module',
-                        /*
-                        'mw_edit_settings',
-                        'mw_master_handle',
-                        'mw_handle_module_arrow',
-                        'mw-element-name-handle',
-                        'mw-sorthandle-module',
-                        'mw-sorthandle-col',
-                        */
                         'plain-text'
                     ];
 
@@ -985,7 +953,7 @@ mw.drag = {
 
                     if( mw.tools.hasAnyOfClassesOnNodeOrParent(target, componentsClasses)) {
                         if (currentComponent && !fonttarget) {
-                            var isSafeMode = false;
+
                             var order = mw.tools.parentsOrder(target, ['safe-mode', 'module']);
                             if(mw.tools.hasClass(currentComponent, 'module')){
                                 mw.trigger("ComponentClick", [target, 'module']);

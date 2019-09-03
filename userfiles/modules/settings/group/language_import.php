@@ -1,6 +1,6 @@
 <script>
 var uploader = mw.files.uploader({
-    filetypes: "zip",
+    filetypes: "xlsx",
     multiple: false
 });
 
@@ -11,30 +11,25 @@ $(document).ready(function () {
     
     $(uploader).bind("FileUploaded", function (obj, data) {
     	$('#mw_uploader').fadeIn();
-    	$('.overwrite-existing-checkobx').fadeIn();
     	$('#upload_file_info').hide();
     	mw.notification.success("Moving uploaded file..."); 
     	
     	postData = {}
-    	postData.src = data.src;
-    	postData.overwrite = 0
+    	postData.src = data.src; 
+    	postData.namespace = "<?php echo $params['namespace']; ?>";
+    	postData.language = "<?php echo $params['language']; ?>";
     	
-    	if ($('#overwrite_existing_template').is(':checked')) {
-    		postData.overwrite = 1;
-    	}
-    	
-		$.post(mw.settings.api_url+'Microweber/Utils/Themes/upload', postData,
+		$.post(mw.settings.api_url+'Microweber/Utils/Language/upload', postData,
 			function(msg) {
 				if (msg.success) {
-			    	mw.reload_module('content/views/layout_selector');
+			    	mw.reload_module('settings/group/language_edit');
 			    }
-				mw.notification.msg(msg, 5000); 
+				mw.notification.msg(msg);
 		});
     });
 
     $(uploader).bind('progress', function (up, file) {
-        $('#mw_uploader').hide(); 
-        $('.overwrite-existing-checkobx').hide();
+        $('#mw_uploader').hide();
         $('#upload_file_info').show();
         mw.$("#upload_file_info").html("<b>Uploading file " + file.percent + "%</b><br /><br />");
     });
@@ -47,19 +42,10 @@ $(document).ready(function () {
 </script>
 <br />
 <center>
-<h3>If you have a .zip theme you can install it by uploading it here.</h3>
+<h3>If you have a .xlsx translated file you can import it by uploading it here.</h3>
 <br />
 
-<span id="upload_file_info" style="font-size:14px;"></span>
-
-<label class="mw-ui-check overwrite-existing-checkobx">
-<input type="checkbox" value="1" name="overwrite_existing_template" id="overwrite_existing_template">
-<span></span><span>Overwrite existing template</span>
-</label>
-
-<br />
-
-<br />
+<span id="upload_file_info" style="font-size:14px;"></span> 
 
  <span id="mw_uploader" class="mw-ui-btn mw-ui-btn-info">
 	<i class="mw-icon-upload"></i>&nbsp;
