@@ -76,6 +76,7 @@ mw.admin.custom_fields.valueLiveEdit = function (span) {
     mw.$(span.parentNode).addClass('active');
     mw.tools.addClass(mw.tools.firstParentWithTag(span, 'tr'), 'active');
     var input = mw.tools.liveEdit(span, true, function (el) {
+        var data;
         if (mw.tools.hasClass(el, 'mw-admin-custom-field-value-edit-inline')) {
             var vals = [],
                 all = mw.tools.firstParentWithClass(el, 'custom-fields-values-holder').parentNode.querySelectorAll('.mw-admin-custom-field-value-edit-inline'),
@@ -85,16 +86,16 @@ mw.admin.custom_fields.valueLiveEdit = function (span) {
                 vals.push(all[i].textContent);
             }
 
-            var data = {
+            data = {
                 id: mw.$(el).dataset('id'),
                 value: vals
-            }
+            };
         }
         else {
-            var data = {
+            data = {
                 id: mw.$(el).dataset('id'),
                 name: mw.$(el).text()
-            }
+            };
         }
         mw.tools.removeClass(mw.tools.firstParentWithTag(this, 'tr'), 'active');
         $.post(mw.settings.api_url + 'fields/save', data, function (adata) {
@@ -103,7 +104,7 @@ mw.admin.custom_fields.valueLiveEdit = function (span) {
 
 	            var rstr = mwd.getElementById('mw-custom-fields-list-settings-' + data.id).innerHTML.replace(/\s+/g, '');
 
-	            if (rstr != '' && !!data.value) {
+	            if (rstr && !!data.value) {
 	                mw.reload_module('#mw-custom-fields-list-settings-' + data.id);
 	            }
         	}
@@ -113,7 +114,7 @@ mw.admin.custom_fields.valueLiveEdit = function (span) {
         });
         mw.$(el.parentNode).removeClass('active');
         mw.tools.removeClass(mw.tools.firstParentWithTag(el, 'tr'), 'active');
-    }, 'mw-ui-field mw-ui-field-small');
+    });
     mw.$(input).bind('blur', function () {
         mw.$('.mw-admin-custom-field-value-edit-inline-holder.active').removeClass('active');
         mw.tools.removeClass(mw.tools.firstParentWithTag(this, 'tr'), 'active');
@@ -179,7 +180,7 @@ mw.admin.custom_fields.make_fields_sortable = function () {
         });
     }
     return sortable_holder;
-}
+};
 mw.admin.custom_fields.del = function (id, toremove) {
     var q = "Are you sure you want to delete '" + mw.$('#mw-custom-list-element-' + id + ' .mw-admin-custom-field-name-edit-inline').text() + "' ?";
     mw.tools.confirm(q, function () {
@@ -203,10 +204,10 @@ mw.admin.custom_fields.del = function (id, toremove) {
 
         });
     });
-}
+};
 mw.admin.custom_fields.deleteFieldValue = function (el) {
     mw.$(el.parentNode).remove();
-}
+};
 mw.admin.custom_fields.edit_custom_field_item = function ($selector, id, callback, event) {
 
     var mTitle = (id ? 'Edit custom field' : 'Add new custom field');
@@ -220,13 +221,14 @@ mw.admin.custom_fields.edit_custom_field_item = function ($selector, id, callbac
 
     editModal = mw.tools.open_module_modal('custom_fields/values_edit', data, {
         overlay: false,
-        width:'350px',
+        width:'450px',
         height:'auto',
         autoHeight: true,
-        title: mTitle
+        title: mTitle,
+        scrollMode: 'window'
     });
 
-}
+};
 
 $(mww).bind('load', function () {
     mw.admin.custom_fields.initValues();

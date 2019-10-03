@@ -1,6 +1,6 @@
 # Microweber: Drag-and-Drop CMS
 
-**Current version: 1.0 running on Laravel 5!** 
+**Current version: 1.0 running on Laravel 5!**
 
 
 **[Download](https://microweber.com/download.php) |
@@ -41,7 +41,7 @@ Microweber operates on the Drag & Drop technology. This means that users can man
 
 #### Real Time Text Editing
 
-Live Edit view is the manifestation of the Real-Time Text Writing & Editing core feature of Microweber CMS. Working in Live Edit view is in fact working on your website’s interface in real time. 
+Live Edit view is the manifestation of the Real-Time Text Writing & Editing core feature of Microweber CMS. Working in Live Edit view is in fact working on your website’s interface in real time.
 
 ![E-commerce solution](https://sitestatic.microweber.com/cdn/gh_readme/homepage-2018-third-section.gif "")
 
@@ -72,15 +72,11 @@ Perhaps the main focus of Microweber CMS is E-commerce. A rising number of peopl
 
 
 
-
-
-
-
 ## Requirements  
 
 * HTTP server  
 * Database server
-* PHP >= 5.6 
+* PHP >= 5.6
   * `lib-xml` must be enabled (with DOM support)
   * `GD` PHP extension
 
@@ -138,10 +134,40 @@ Make sure these folders, and everything inside, is writeable by the user executi
 
 See the [online guides](http://microweber.com/docs/guides/README.md) for developers.
 
-## Contribute 
-We are looking for people who want to help us improve Microweber. 
+## Contribute
+We are looking for people who want to help us improve Microweber.
 
-If you are a developer, submitting fixes is easy. Just fork the Microweber repository, make your changes and submit a pull request.
+If you are a developer, submitting fixes is easy. Just fork the Microweber repository, make your changes, submit a pull request and be sure all tests are passing.
 
 ## Build Status
-[![Build Status](https://api.travis-ci.org/microweber/microweber.svg)](https://travis-ci.org/microweber/microweber)
+[![Build Status](https://ci.microweber.com/job/microweber/job/master/badge/icon)](https://ci.microweber.com/job/microweber/)
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/microweber/microweber/graphs/contributors"><img src="https://opencollective.com/microweber/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/microweber/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/microweber"><img src="https://opencollective.com/microweber/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/microweber/contribute)]
+
+<a href="https://opencollective.com/microweber/organization/0/website"><img src="https://opencollective.com/microweber/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/1/website"><img src="https://opencollective.com/microweber/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/2/website"><img src="https://opencollective.com/microweber/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/3/website"><img src="https://opencollective.com/microweber/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/4/website"><img src="https://opencollective.com/microweber/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/5/website"><img src="https://opencollective.com/microweber/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/6/website"><img src="https://opencollective.com/microweber/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/7/website"><img src="https://opencollective.com/microweber/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/8/website"><img src="https://opencollective.com/microweber/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/microweber/organization/9/website"><img src="https://opencollective.com/microweber/organization/9/avatar.svg"></a>
