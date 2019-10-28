@@ -140,7 +140,11 @@ class BackupManager
 			if (isset($content['error'])) {
 				return $content;
 			}
-			
+
+			if (isset($content['must_choice_language']) && $content['must_choice_language']) {
+			    return $content;
+            }
+
 			$writer = new DatabaseWriter();
 			$writer->setContent($content['data']);
 			$writer->setOverwriteById($this->importOvewriteById);

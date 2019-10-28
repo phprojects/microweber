@@ -65,12 +65,24 @@ class ZipReader extends DefaultReader
 			}
 			
 		}
-		
+
 		if (empty($filesForImporting)) {
 			BackupImportLogger::setLogInfo('The zip file has no files to import.');
 			return;
 		}
-		
+
+		$detectedLanguages = array();
+		foreach ($filesForImporting as $file) {
+		    if (strpos($file['file'], 'bg_lang') !== false) {
+		        $detectedLanguages[] = 'bg';
+            }
+        }
+
+        if (!empty($detectedLanguages)) {
+            BackupImportLogger::setLogInfo('Its detected other languages in this import.');
+            return array('must_choice_language' => true, 'detected_languages'=>$detectedLanguages);
+        }
+
 		// Decode files in zip
 		$readedData = array();
 		foreach ($filesForImporting as $file) {
