@@ -498,6 +498,7 @@ class CheckoutManager
         }
 
         $ord_data = $this->app->shop_manager->get_orders('one=1&id=' . $order_id);
+
         if (is_array($ord_data)) {
             $ord = $order_id;
             $notification = array();
@@ -527,23 +528,25 @@ class CheckoutManager
                 $order_email_enabled = $skip_enabled_check;
             }
 
-            if ($order_email_enabled == true) {
 
+            if ($order_email_enabled == true) {
 
                //  $order_email_subject = $this->app->option_manager->get('order_email_subject', 'orders');
                 // $order_email_content = $this->app->option_manager->get('order_email_content', 'orders');
 
                 $mail_template = false;
                 $mail_template_binds = $this->app->event_manager->trigger('mw.cart.confirm_email_send', $order_id);
-
                 if (is_array($mail_template_binds)) {
-                    $mail_template = array_pop($mail_template_binds);
+                    foreach ($mail_template_binds  as $bind) {
+                        if (is_array($bind) && isset($bind['mail_template'])) {
+                            $mail_template = $bind['mail_template'];
+                        }
+                    }
                 }
 
                 if (!$mail_template) {
                     return;
                 }
-
 
                 $order_email_subject = $mail_template['subject'];
                 $order_email_content = $mail_template['message'];
@@ -589,22 +592,44 @@ class CheckoutManager
                         }
 
                         $order_items_html = $this->app->format->array_to_table($cart_items_info);
-                        $order_email_content = str_replace('{cart_items}', $order_items_html, $order_email_content);
-                        $order_email_content = str_replace('{date}', date('F jS, Y', strtotime($ord_data['created_at'])), $order_email_content);
+                        $order_email_content = str_replace('{{cart_items}}', $order_items_html, $order_email_content);
+                        $order_email_content = str_replace('{{date}}', date('F jS, Y', strtotime($ord_data['created_at'])), $order_email_content);
                         foreach ($ord_data as $key => $value) {
                             if (!is_array($value) and is_string($key)) {
                                 if (strtolower($key) == 'amount') {
                                     $value = number_format($value, 2);
+                                    $order_email_content = str_ireplace('{{' . $key . '}}', $value, $order_email_content);
+                                    continue;
                                 }
-                                $order_email_content = str_ireplace('{' . $key . '}', $value, $order_email_content);
                             }
                         }
+                    }
+
+                    if (get_option('bank_transfer_send_email_instructions', 'payments') == 'y') {
+                        $order_email_content .=  _e("Follow payment instructions", true);
+                        $order_email_content .= '<br />' . get_option('bank_transfer_instructions', 'payments');
                     }
 
                     $twig = new \Twig_Environment(new \Twig_Loader_String());
                     $order_email_content = $twig->render(
                         $order_email_content,
-                        array('cart' => $cart_items, 'order' => $ord_data)
+                        array(
+                            'cart' => $cart_items,
+                            'order' => $ord_data,
+                            'order_id'=>$ord_data['id'],
+                            'transaction_id'=>$ord_data['transaction_id'],
+                            'currency'=>$ord_data['currency'],
+                            'order_status'=>$ord_data['order_status'],
+                            'first_name'=>$ord_data['first_name'],
+                            'last_name'=>$ord_data['last_name'],
+                            'email'=>$ord_data['email'],
+                            'phone'=>$ord_data['phone'],
+                            'address'=>$ord_data['address'],
+                            'zip'=>$ord_data['zip'],
+                            'state'=>$ord_data['state'],
+                            'city'=>$ord_data['city'],
+                            'country'=>$ord_data['country']
+                        )
                     );
 
                     if (isset($to) and (filter_var($to, FILTER_VALIDATE_EMAIL))) {

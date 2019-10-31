@@ -180,7 +180,6 @@ class Modules
         $saved_ids = array();
         if (!empty($dir)) {
             $configs = array();
-
             foreach ($dir as $key => $value) {
                 $skip_module = false;
                 if (isset($options['skip_admin']) and $options['skip_admin'] == true) {
@@ -263,10 +262,13 @@ class Modules
                     if ($main_try_icon and is_file($main_try_icon)) {
                         $config['icon'] = $this->app->url_manager->link_to_file($main_try_icon);
                     } elseif (is_file($try_icon)) {
+//                        d($config);
+//                        d($try_icon);
                         $config['icon'] = $this->app->url_manager->link_to_file($try_icon);
                     } else {
                         $config['icon'] = $this->app->url_manager->link_to_file($def_icon);
                     }
+
 
                     if (isset($config['ui'])) {
                         $config['ui'] = intval($config['ui']);
@@ -296,6 +298,8 @@ class Modules
                     if (isset($config['name']) and $skip_save !== true and $skip_module == false) {
                         if (trim($config['module']) != '') {
                             if ($list_as_element == true) {
+
+
                                 $this->app->layouts_manager->save($config);
                             } else {
                                 $this->log('Installing module: ' . $config['name']);
@@ -321,6 +325,7 @@ class Modules
                             }
                         }
                     }
+
                     $configs[] = $config;
                 }
             }
@@ -661,23 +666,28 @@ class Modules
      */
     public function templates($module_name, $template_name = false, $get_settings_file = false)
     {
+
+
         $module_name = str_replace('admin', '', $module_name);
         $module_name_l = $this->locate($module_name);
-
+$replace_paths = array();
         if ($module_name_l == false) {
             $module_name_l = modules_path() . DS . $module_name . DS;
             $module_name_l = normalize_path($module_name_l, 1);
+            $replace_paths[] = $module_name_l;
         } else {
             $module_name_l = dirname($module_name_l) . DS . 'templates' . DS;
             $module_name_l = normalize_path($module_name_l, 1);
+            $replace_paths[] = $module_name_l;
         }
 
         $module_name_l_theme = ACTIVE_TEMPLATE_DIR . 'modules' . DS . $module_name . DS . 'templates' . DS;
         $module_name_l_theme = normalize_path($module_name_l_theme, 1);
 
+        $replace_paths[] = $module_name_l_theme;
+        $replace_paths[] =         normalize_path(    'modules' . '/' . $module_name .'/' .'templates' . '/', 1);
 
         $template_config = mw()->template->get_config();
-
 
         if (!is_dir($module_name_l) /*and !is_dir($module_name_l_theme)*/) {
             return false;
@@ -688,6 +698,7 @@ class Modules
                 $options['no_cache'] = 1;
                 $options['path'] = $module_name_l;
                 $module_name_l = $this->app->layouts_manager->scan($options);
+
                 //  $module_name_l  = array();
 
                 if (is_dir($module_name_l_theme)) {
@@ -712,9 +723,23 @@ class Modules
                             // $comb = array_merge($module_skins_from_theme, $module_name_l);
                             if (is_array($comb) and !empty($comb)) {
                                 foreach ($comb as $k1 => $itm) {
-                                    if (isset($itm['layout_file']) and $itm['layout_file']) {
-                                        $itm['layout_file'] = normalize_path($itm['layout_file']);
-                                    }
+//                                    if (isset($itm['layout_file']) and $itm['layout_file']) {
+//
+//                                            foreach ($replace_paths as $replace_path) {
+//                                                $replace_path2  = str_replace(DS, '/', $replace_path );
+//
+//                                                $itm['layout_file']  = str_replace(DS, '/', $itm['layout_file'] );
+//
+//                                                $itm['layout_file'] = str_ireplace($replace_path, '', $itm['layout_file']);
+//                                                $itm['layout_file'] = str_ireplace($replace_path2, '', $itm['layout_file']);
+//
+//                                                $itm['layout_file'] = str_ireplace(normalize_path($replace_path), '', $itm['layout_file']);
+//                                            }
+//                                      //
+//
+//                                        $itm['layout_file'] = normalize_path($itm['layout_file'],false);
+//
+//                                    }
                                     if (!in_array($itm['layout_file'], $file_names_found)) {
                                         if (isset($itm['visible'])) {
                                             if ($itm['visible'] == 'false'
@@ -901,7 +926,17 @@ class Modules
             $module_namei = str_ireplace('/admin', '', $module_namei);
         }
         $uninstall_lock = $this->get('one=1&ui=any&module=' . $module_namei);
-        if (empty($uninstall_lock) or (isset($uninstall_lock['installed']) and $uninstall_lock['installed'] != '' and intval($uninstall_lock['installed']) != 1)) {
+
+        if (!$uninstall_lock or empty($uninstall_lock) or (isset($uninstall_lock['installed']) and $uninstall_lock['installed'] != '' and intval($uninstall_lock['installed']) != 1)) {
+            $root_mod= $this->locate_root_module($module_name);
+            if($root_mod){
+                $uninstall_lock = $this->get('one=1&ui=any&module=' . $root_mod);
+                if (empty($uninstall_lock) or (isset($uninstall_lock['installed']) and $uninstall_lock['installed'] != '' and intval($uninstall_lock['installed']) != 1)) {
+                    return false;
+                } else {
+                    return true;
+                }
+            }
             return false;
         } else {
             return true;
@@ -1207,6 +1242,7 @@ class Modules
         }
 
         $dir_name = ACTIVE_TEMPLATE_DIR . 'modules' . DS;
+
 
         if (is_dir($dir_name)) {
             $configs = array();

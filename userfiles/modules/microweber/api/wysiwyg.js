@@ -4,6 +4,7 @@
 mw.require('css_parser.js');
 mw.require('icon_selector.js');
 mw.require('events.js');
+
 //mw.lib.require('rangy');
 
 classApplier = window.classApplier || [];
@@ -95,11 +96,12 @@ mw.wysiwyg = {
     },
     isSafeMode: function (el) {
         if (!el) {
-            var sel = window.getSelection(),
-                range = sel.getRangeAt(0);
+            var sel = window.getSelection();
+            if(!sel.rangeCount) return false;
+            var range = sel.getRangeAt(0);
             el = mw.wysiwyg.validateCommonAncestorContainer(range.commonAncestorContainer);
         }
-        var hasSafe = mw.tools.parentsOrCurrentOrderMatchOrOnlyFirstOrBoth(el, ['safe-mode', 'edit']);
+        var hasSafe = mw.tools.hasAnyOfClassesOnNodeOrParent(el, ['safe-mode']);
         var regInsafe = mw.tools.parentsOrCurrentOrderMatchOrNone(el, ['regular-mode', 'safe-mode']);
         return hasSafe && !regInsafe;
     },
@@ -144,10 +146,13 @@ mw.wysiwyg = {
         mw.wysiwyg.save_selection();
         var cleaner = mw.$('<div class="mw-cleaner-block" contenteditable="true"><small class="muted">Paste document here.</small></div>')
         var inserter = mw.$('<span class="mw-ui-btn mw-ui-btn-medium mw-ui-btn-invert pull-right">Insert</span>')
-        var clean = mw.modal({
+        var clean = mw.dialog({
             content: cleaner,
             overlay: true,
-            title: 'Paste from word'
+            title: 'Paste from word',
+            footer: inserter,
+            height: 'auto',
+            autoHeight: true
         });
         cleaner.on('paste', function () {
             setTimeout(function () {
@@ -166,7 +171,7 @@ mw.wysiwyg = {
             mw.wysiwyg.insert_html(cleaner.html());
             clean.remove();
         });
-        cleaner.after(inserter)
+        //cleaner.after(inserter)
     },
     globalTarget: mwd.body,
     allStatements: function (c, f) {
@@ -230,7 +235,7 @@ mw.wysiwyg = {
                         mw.wysiwyg.change(this);
                         if (this.querySelectorAll('*').length === 0 && mw.live_edit.hasAbilityToDropElementsInside(this)) {
                             mw.wysiwyg.modify(this, function () {
-                                if (!mw.tools.hasAnyOfClassesOnNodeOrParent(this, ['safe-mode'])) {
+                                if (!mw.wysiwyg.isSafeMode(this)) {
                                     this.innerHTML = '<p class="element">' + this.innerHTML + '</p>';
                                 }
                             });
@@ -241,7 +246,7 @@ mw.wysiwyg = {
                         if (this.querySelectorAll('*').length === 0 && mw.live_edit.hasAbilityToDropElementsInside(this)) {
 
                             mw.wysiwyg.modify(this, function () {
-                                if (!mw.tools.hasAnyOfClassesOnNodeOrParent(this, ['safe-mode'])) {
+                                if (!mw.wysiwyg.isSafeMode(this)) {
                                     this.innerHTML = '<p class="element">' + this.innerHTML + '&nbsp;</p>';
                                 }
                             });
@@ -361,6 +366,9 @@ mw.wysiwyg = {
                 el = mw.tools.firstParentOrCurrentWithAnyOfClasses(el, ['edit', 'regular-mode']);
             }
         }
+        if (typeof(mw.liveedit) != 'undefined' && mw.liveedit.data.set('mouseup', 'isIcon')) {
+            state = false;
+        }
         if(el && el.contentEditable !== state) { // chrome setter needs a check
 
             el.contentEditable = state;
@@ -464,15 +472,28 @@ mw.wysiwyg = {
     },
     execCommandFilter: function (a, b, c) {
         var arr = ['justifyCenter', 'justifyFull', 'justifyLeft', 'justifyRight'];
+        var align;
+        var node = window.getSelection().focusNode;
+        var elementNode = mw.wysiwyg.validateCommonAncestorContainer(node);
+        console.log(elementNode, mw.wysiwyg.isSafeMode(elementNode))
+        if (mw.wysiwyg.isSafeMode(elementNode) && arr.indexOf(a) !== -1) {
+            align = a.split('justify')[1].toLowerCase();
+            if (align === 'full') {
+                align = 'justify';
+            }
+            elementNode.style.textAlign = align;
+            mw.wysiwyg.change(elementNode);
+            return false;
+        }
         if (mw.is.firefox && arr.indexOf(a) !== -1) {
-            var node = window.getSelection().focusNode;
-            var elementNode = mw.wysiwyg.validateCommonAncestorContainer(node);
-            if (elementNode.nodeName == 'P') {
-                var align = a.split('justify')[1].toLocaleString();
-                if (align == 'full') {
+
+            if (elementNode.nodeName === 'P') {
+                align = a.split('justify')[1].toLowerCase();
+                if (align === 'full') {
                     align = 'justify';
                 }
-                elementNode.style.textAlign = align
+                elementNode.style.textAlign = align;
+                mw.wysiwyg.change(elementNode)
                 return false;
             }
         }
@@ -482,9 +503,10 @@ mw.wysiwyg = {
         document.execCommand('styleWithCss', 'false', false);
         var fnode = window.getSelection().focusNode;
 
+
         if ((fnode !== null) && (mw.tools.hasClass(fnode, 'plain-text') || mw.tools.hasClass(fnode.parentNode, 'plain-text') || mw.tools.hasParentsWithClass(fnode.parentNode, 'plain-text'))) {
-            if (a == 'inserthtml') {
-                c = mw.tools.parseHtml(c).body.innerText
+            if (a === 'inserthtml') {
+                // c = mw.tools.parseHtml(c).body.innerText;
             }
             else {
                 return false;
@@ -493,8 +515,8 @@ mw.wysiwyg = {
         }
         try {  // 0x80004005
             if (document.queryCommandSupported(a) && mw.wysiwyg.isSelectionEditable()) {
-                var b = b || false;
-                var c = c || false;
+                b = b || false;
+                c = c || false;
                 var node = window.getSelection().focusNode;
                 var elementNode = mw.wysiwyg.validateCommonAncestorContainer(node);
                 var before = mw.$(node).clone()[0];
@@ -611,7 +633,7 @@ mw.wysiwyg = {
         else {
             clipboard = e.clipboardData || mww.clipboardData;
         }
-        if (mw.tools.hasAnyOfClassesOnNodeOrParent(e.target, ['safe-mode'])) {
+        if (mw.wysiwyg.isSafeMode(e.target)) {
             if (typeof clipboard !== 'undefined' && typeof clipboard.getData === 'function' && mw.wysiwyg.editable(e.target)) {
                 var text = clipboard.getData('text');
                 mw.wysiwyg.insert_html(text);
@@ -1057,147 +1079,30 @@ mw.wysiwyg = {
                     return true;
                 }
                 var sel = window.getSelection();
-                if (event.keyCode === 13) {
-
-                    if (mw.tools.hasAnyOfClassesOnNodeOrParent(event.target, ['safe-mode'])) {
-
+                if (mw.event.is.enter(event)) {
+                    if (mw.wysiwyg.isSafeMode(event.target)) {
                         var isList = mw.tools.firstMatchesOnNodeOrParent(event.target, ['li', 'ul', 'ol'])
                         if (!isList) {
                             event.preventDefault();
-                            if (event.shiftKey) {
-                                mw.wysiwyg.insert_html('<br>');
-                            }
-                            else {
-                                mw.wysiwyg.insert_html('<br><br>');
+                            mw.wysiwyg.insert_html(' <br>');
+                            if(sel.focusNode.nextSibling && sel.focusNode.nextSibling.nodeName === 'BR' && sel.focusNode.nextSibling === sel.focusNode.parentNode.lastChild){
+                                var id = mw.id('mw-br-');
+                                mw.wysiwyg.insert_html(' <br><br id="'+id+'">');
+
+                                mw.wysiwyg.cursorToElement(mwd.getElementById(id), 'after');
                             }
                         }
-
-
                     }
-
                 }
+
+
                 if (sel.rangeCount > 0) {
                     var r = sel.getRangeAt(0);
                     if (event.keyCode == 9 && !event.shiftKey && sel.focusNode.parentNode.iscontentEditable && sel.isCollapsed) {   /* tab key */
                         mw.wysiwyg.insert_html('&nbsp;&nbsp;&nbsp;&nbsp;');
                         return false;
                     }
-                    if (event.keyCode == 46 || event.keyCode == 8) {
-
-                        if (!mw.settings.liveEdit) {
-                            return true;
-                        }
-                        var nextNode = null;
-
-                        if (event.keyCode == 46 || event.keyCode == 8) {
-                            if (event.keyCode == 46) {
-                                var nextchar = sel.focusNode.textContent.charAt(sel.focusOffset);
-                                var nextnextchar = sel.focusNode.textContent.charAt(sel.focusOffset + 1);
-                                var nextel = sel.focusNode.nextSibling || sel.focusNode.nextElementSibling;
-
-                            } else {
-                                var nextchar = sel.focusNode.textContent.charAt(sel.focusOffset - 1);
-                                var nextnextchar = sel.focusNode.textContent.charAt(sel.focusOffset - 2);
-                                var nextel = sel.focusNode.previouSibling || sel.focusNode.previousElementSibling;
-
-                            }
-
-
-                            if ((nextchar == ' ' || /\r|\n/.exec(nextchar) !== null) && sel.focusNode.nodeType === 3 && !nextnextchar) {
-                                event.preventDefault()
-                                return false;
-                            }
-
-
-                            if (nextnextchar == '') {
-
-
-                                if (nextchar.replace(/\s/g, '') == '' && r.collapsed) {
-
-                                    if (nextel && !mw.ea.helpers.isBlockLevel(nextel) && ( typeof(nextel.className) == 'undefined' || !nextel.className.trim())) {
-                                        return true;
-                                    }
-                                    else if (nextel && nextel.nodeName != 'BR') {
-                                        if (sel.focusNode.nodeName === 'P') {
-                                            if (event.keyCode === 46) {
-                                                if (sel.focusNode.nextElementSibling.nodeName === 'P') {
-                                                    return true;
-                                                }
-                                            }
-                                            if (event.keyCode === 8) {
-
-                                                if (sel.focusNode.previousElementSibling.nodeName === 'P') {
-                                                    return true;
-                                                }
-                                            }
-                                        }
-                                        event.preventDefault()
-                                        return false;
-                                    }
-
-                                }
-                                else if ((focus.previousElementSibling === null && rootfocus.previousElementSibling === null) && mw.tools.hasAnyOfClassesOnNodeOrParent(rootfocus, ['nodrop', 'allow-drop'])) {
-                                    return false;
-                                }
-                                else {
-
-                                }
-                            }
-                            if (nextchar == '') {
-
-
-                                //continue check nodes
-                                if (event.keyCode == 46) {
-                                    nextNode = mw.wysiwyg.merge.getNext(sel.focusNode);
-                                }
-                                if (event.keyCode == 8) {
-                                    nextNode = mw.wysiwyg.merge.getPrev(sel.focusNode);
-                                }
-                                if (mw.wysiwyg.merge.alwaysMergeable(nextNode)) {
-                                    return true;
-                                }
-
-                                var nonbr = mw.wysiwyg.merge.isInNonbreakable(nextNode)
-                                if (nonbr) {
-                                    event.preventDefault();
-                                    return false;
-                                }
-
-                                if (nextNode.nodeValue == '') {
-
-                                }
-                                if (nextNode !== null && mw.wysiwyg.merge.isMergeable(nextNode)) {
-                                    if (event.keyCode == 46) {
-                                        mw.wysiwyg.merge.manageBreakables(sel.focusNode, nextNode, 'next', event)
-                                    }
-                                    else {
-                                        mw.wysiwyg.merge.manageBreakables(sel.focusNode, nextNode, 'prev', event)
-                                    }
-                                }
-                                else {
-                                    event.preventDefault()
-                                }
-                                //  }
-                                if (nextNode === null) {
-                                    nextNode = sel.focusNode.parentNode.nextSibling;
-                                    if (!mw.wysiwyg.merge.isMergeable(nextNode)) {
-                                        event.preventDefault();
-                                    }
-                                    if (event.keyCode == 46) {
-                                        mw.wysiwyg.merge.manageBreakables(sel.focusNode, nextNode, 'next', event)
-                                    }
-                                    else {
-                                        mw.wysiwyg.merge.manageBreakables(sel.focusNode, nextNode, 'prev', event)
-                                    }
-
-                                }
-
-                            } else {
-
-                            }
-                        }
-
-                    }
+                    return mw.wysiwyg.manageDeleteAndBackspace(event, sel);
                 }
             }
         });
@@ -1207,6 +1112,9 @@ mw.wysiwyg = {
                 //mw.wysiwyg.select_all(mw.tools.firstParentWithClass(target, 'element'));
             }
             var s = window.getSelection();
+            if(!s.rangeCount) {
+                return;
+            }
             var r = s.getRangeAt(0);
             var c = r.cloneContents();
             //var common = mw.wysiwyg.validateCommonAncestorContainer(r.commonAncestorContainer);
@@ -1276,9 +1184,6 @@ mw.wysiwyg = {
 
 
                 mw.$(this._onCloneableControl).hide()
-                if (mw.tools.isEmpty(e.target)) {
-                    e.target.innerHTML = '&zwnj;&nbsp;';
-                }
                 if (mw.event.is.enter(e)) {
 
                     mw.$(".element-current").removeClass("element-current");
@@ -1364,15 +1269,17 @@ mw.wysiwyg = {
 
     editable: function (el) {
         var el = mw.wysiwyg.validateCommonAncestorContainer(el);
-        return el.isContentEditable;
+        return el.isContentEditable && ['SELECT', 'INPUT', 'TEXTAREA'].indexOf(el.nodeName) === -1;
     },
     cursorToElement: function (node, a) {
-        if (node === null) {
-            return false;
-        }
+
         if (!node) {
             return false;
         }
+        if(mw.tools.hasAnyOfClassesOnNodeOrParent(node, ['safe-element', 'icon', 'mw-icon', 'material-icons', 'mw-wysiwyg-custom-icon'])){
+            return;
+        }
+        mw.wysiwyg.contentEditable(node, true);
         a = (a || 'start').trim();
         var sel = mww.getSelection();
         var r = mwd.createRange();
@@ -1397,6 +1304,26 @@ mw.wysiwyg = {
             r.collapse(false);
             sel.addRange(r);
         }
+    },
+    rfapplier: function (tag, classname, style_object) {
+        // var el = mw.wysiwyg.applier('div', 'element', {width: "100%"});
+        var parent, fnode = getSelection().focusNode;
+        /*if(mw.wysiwyg.isSafeMode(mw.wysiwyg.validateCommonAncestorContainer(fnode))) {
+            parent = mw.tools.firstParentWithClass(fnode, 'safe-mode');
+            console.log(parent)
+            if(parent){
+                mw.wysiwyg.contentEditable(parent, true);
+                $('[contenteditable]', parent).removeAttr('contenteditable')
+            }
+
+        }*/
+        var id = mw.id('mw-applier-element-');
+        this.execCommand("insertHTML", false, '<'+tag+' '+(classname ? 'class="' + classname + '"' : '')+' id="'+id+'">'+ getSelection()+'</'+tag+'>');
+        var $el = mw.$('#' + id);
+        if (style_object) {
+            $el.css(style_object);
+        }
+        return $el[0];
     },
     applier: function (tag, classname, style_object) {
         var classname = classname || '';
@@ -1800,19 +1727,21 @@ mw.wysiwyg = {
     link: function (prepolulate, node_id) {
         // mw.wysiwyg.save_selection();
         //var modal = mw.tools.modal.frame({
-        var modal = mw.dialogIframe({
+        mw.require('external_callbacks.js');
+        var modal = mw.top().dialogIframe({
             url: "rte_link_editor",
             title: "Edit link",
             name: "mw_rte_link",
             id: "mw_rte_link",
             //template: 'basic',
-            width: 600,
+            width: 700,
             height: 'auto',
             autoHeight: true
+        }, function(result){
+            console.log(result)
+            mw.iframecallbacks.insert_link(result.url, result.target, result.text);
         });
-        mw.$('iframe', modal.main).on('change', function (a, b, c, e) {
-            mw.iframecallbacks[b](c, e);
-        });
+
 
         var link = false;
         if (typeof(prepolulate) != 'undefined') {
@@ -1884,30 +1813,58 @@ mw.wysiwyg = {
         mw.wysiwyg.change('.element-current');
     },
     request_media: function (hash, types) {
-        var types = types || false;
-        if (hash == '#editimage') {
-            var types = 'images';
+        mw.require('external_callbacks.js');
+        types = types || false;
+        if (hash === '#editimage') {
+            types = 'images';
+            //hash = 'noop';
         }
         var url = !!types ? "rte_image_editor?types=" + types + '' + hash : "rte_image_editor" + hash;
 
-        var url = mw.settings.site_url + 'editor_tools/' + url;
-        /*var modal = mw.tools.modal.frame({
-            url: url,
-            name: "mw_rte_image",
-            width: 430,
-            height: 230,
-            template: 'mw_modal_basic',
-            overlay: true
-        });
-        modal.overlay.style.backgroundColor = 'white';*/
-        var modal = mw.dialogIframe({
+        url = mw.settings.site_url + 'editor_tools/' + url;
+        var sel = mw.wysiwyg.save_selection()
+        var modal = mw.top().dialogIframe({
             url: url,
             name: "mw_rte_image",
             width: 460,
             height: 'auto',
             autoHeight:true,
-            template: 'mw_modal_basic',
             overlay: true
+        }, function(res) {
+            if(hash === '#set_bg_image'){
+                mw.wysiwyg.set_bg_image(res);
+                return;
+            }
+
+            mw.wysiwyg.restore_selection();
+
+            if(hash === '#editimage') {
+                if(mw.image.currentResizing) {
+                    if (mw.image.currentResizing[0].nodeName === 'IMG') {
+                        mw.image.currentResizing.attr("src", res);
+                        mw.image.currentResizing.css('height', 'auto');
+                    }
+                    else {
+                        mw.image.currentResizing.css("backgroundImage", 'url(' + mw.files.safeFilename(res) + ')');
+                        mw.wysiwyg.bgQuotesFix(parent.mw.image.currentResizing[0])
+                    }
+
+                    mw.wysiwyg.change(mw.image.currentResizing[0]);
+                    mw.image.currentResizing.load(function () {
+                        mw.image.resize.resizerSet(this);
+                    });
+                }
+            }
+            else {
+                if(res.indexOf('<') !== -1) {
+                    mw.wysiwyg.insert_html(res);
+                } else {
+                    mw.wysiwyg.insert_image(res);
+                }
+            }
+
+            this.remove();
+
         });
     },
     media: function (hash) {
@@ -1969,7 +1926,11 @@ mw.wysiwyg = {
             mw.wysiwyg.contentEditable(el.parentNode, false);
             mw.$(el).replaceWith(frame);
         }
-        mw.wysiwyg.change(mw.wysiwyg.validateCommonAncestorContainer(window.getSelection().getRangeAt(0).commonAncestorContainer));
+        var sel = getSelection();
+        if(sel.rangeCount){
+            mw.wysiwyg.change(mw.wysiwyg.validateCommonAncestorContainer(sel.getRangeAt(0).commonAncestorContainer));
+
+        }
     },
     selection_length: function () {
         var n = window.getSelection().getRangeAt(0).cloneContents().childNodes,
@@ -1993,12 +1954,10 @@ mw.wysiwyg = {
         mw.wysiwyg.insert_html(img);
         mw.settings.liveEdit ? mw.$("#" + id).attr("contenteditable", false) : '';
         mw.$("#" + id).removeAttr("_moz_dirty");
-        mw.wysiwyg.save_selection();
         mw.wysiwyg.change(mwd.getElementById(id));
         return id;
     },
-    save_selection: function (a) {
-        var a = a || false;
+    save_selection: function () {
         var selection = window.getSelection();
         if (selection.rangeCount > 0) {
             var range = selection.getRangeAt(0);
@@ -2007,7 +1966,7 @@ mw.wysiwyg = {
             var range = mwd.createRange();
             range.selectNode(mwd.querySelector('.edit .element'));
         }
-        mw.wysiwyg.selection = {}
+        mw.wysiwyg.selection = {};
         mw.wysiwyg.selection.sel = selection;
         mw.wysiwyg.selection.range = range;
         mw.wysiwyg.selection.element = mw.$(mw.wysiwyg.validateCommonAncestorContainer(range.commonAncestorContainer));
@@ -2523,7 +2482,7 @@ mw.wysiwyg.dropdowns = function () {
     mw.wysiwyg.initFontSelectorBox();
     mw.$("#wysiwyg_insert").not('.ready').addClass('ready').on("change", function () {
         var fnode = window.getSelection().focusNode;
-        var isPlain = mw.tools.hasClass(fnode, 'plain-text') || mw.tools.hasClass(fnode.parentNode, 'plain-text')
+        var isPlain = mw.tools.firstParentOrCurrentWithClass(fnode, 'plain-text');
         if (mw.wysiwyg.isSelectionEditable()) {
             var val = mw.$(this).getDropdownValue();
 
@@ -2683,15 +2642,16 @@ $(window).on('load', function () {
 
     mw.$(window).on("keydown", function (e) {
 
-        if (e.type == 'keydown') {
-            var isPlain = mw.tools.hasClass(e.target, 'plain-text');
-            if (e.keyCode == 13) {
+        if (e.type === 'keydown') {
+
+            if (e.keyCode === 13) {
                 var field = mw.tools.mwattr(e.target, 'field');
-                if (field == 'title' || isPlain) {
+                if (field === 'title' || mw.tools.hasClass(e.target, 'plain-text')) {
                     e.preventDefault();
                 }
             }
             if (e.ctrlKey) {
+                var isPlain = mw.tools.firstParentOrCurrentWithClass(e.target, 'plain-text');
                 if (!isPlain) {
                     var code = e.keyCode;
                     if (code === 66) {
@@ -2743,7 +2703,9 @@ $(window).on('load', function () {
         }
 
     }
+    mw.require('wysiwygmdab.js');
 });
+
 mw.linkTip = {
     init: function (root) {
         if (root === null || !root) {
@@ -2775,22 +2737,18 @@ mw.linkTip = {
     tip: function (node) {
 
         var link_id = null;
-        if (typeof(node) == 'object' && (typeof(node.id) == null) || node.id == '') {
-            link_id = 'mw-link-id-' + mw.random()
+        if (typeof(node) === 'object' && !node.id) {
+            link_id = 'mw-link-id-' + mw.random();
             node.id = link_id;
         }
-        if (typeof(node) == 'object' && (typeof(node.id) != null) || node.id != '') {
-            var link_id = node.id;
+        if (typeof(node) === 'object' && !!node.id) {
+            link_id = node.id;
         }
         if (!mw.linkTip._tip) {
-
             var href_target = '_self';
-
             if (node.href.indexOf(location.host) !== -1) {
-                //different page
-                var href_target = '_blank';
+                href_target = '_blank';
             }
-
             var content = '<a href="' + node.getAttribute('href') + '" target="' + href_target + '"  edit-id="' + link_id + '" class="mw-link-tip-link">' + node.getAttribute('href') + '</a><span>-</span><a edit-href="' + node.getAttribute('href') + '" edit-id="' + link_id + '" href="javascript:;" class="mw-link-tip-edit">Edit</a>';
             mw.linkTip._tip = mw.tooltip({content: content, position: 'bottom-center', skin: 'dark', element: node});
             mw.$(mw.linkTip._tip).addClass('mw-link-tip');

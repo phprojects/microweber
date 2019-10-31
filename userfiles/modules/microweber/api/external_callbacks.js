@@ -1,6 +1,13 @@
 mw.iframecallbacks = {
-    insert_link: function (url, target, link_content) {
+    noop: function() {
 
+    },
+    insert_link: function (url, target, link_content) {
+        if(url.callee){
+            target = url[1];
+            link_content = url[2];
+            url = url[0];
+        }
         url = url.trim();
         var contains = false;
         var arr = ['mailto:', 'tel:', 'skype:', 'sms:', 'geopoint:', 'whatsapp:'],
@@ -20,9 +27,13 @@ mw.iframecallbacks = {
             link_inner_text = link_content;
         }
 
+        var sel = getSelection();
+        if(!sel.rangeCount){
+            return;
+        }
 
-        var range = window.getSelection().getRangeAt(0);
-        var jqAction = url?'attr':'removeAttr';
+        var range = sel.getRangeAt(0);
+        var jqAction = url ? 'attr' : 'removeAttr';
 
 
         mw.wysiwyg.change(range.startContainer);
@@ -123,12 +134,7 @@ mw.iframecallbacks = {
         }
 
     },
-    insert_html: function (html) {
-        return mw.wysiwyg.insert_html(html);
-    },
-    insert_image: function (url) {
-        return mw.wysiwyg.insert_image(url);
-    },
+
     set_bg_image: function (url) {
         return mw.wysiwyg.set_bg_image(url);
     },
@@ -147,22 +153,24 @@ mw.iframecallbacks = {
     change_shadow_color: function (color) {
         return mw.wysiwyg.change_shadow_color(color);
     },
-    editimage: function (url) {
+    ьeditimage: function (url) {
 
 
-        if(mw.image.currentResizing[0].nodeName == 'IMG'){
-          mw.image.currentResizing.attr("src", url);
-          mw.image.currentResizing.css('height',  'auto');
+        if(mw.image.currentResizing) {
+            if (mw.image.currentResizing[0].nodeName == 'IMG') {
+                mw.image.currentResizing.attr("src", url);
+                mw.image.currentResizing.css('height', 'auto');
+            }
+            else {
+                mw.image.currentResizing.css("backgroundImage", 'url(' + mw.files.safeFilename(url) + ')');
+                top.mw.wysiwyg.bgQuotesFix(parent.mw.image.currentResizing[0])
+            }
+
+            mw.wysiwyg.change(mw.image.currentResizing[0]);
+            parent.mw.image.currentResizing.load(function () {
+                parent.mw.image.resize.resizerSet(this);
+            });
         }
-        else{
-          mw.image.currentResizing.css("backgroundImage", 'url('+mw.files.safeFilename(url)+')');
-          top.mw.wysiwyg.bgQuotesFix(parent.mw.image.currentResizing[0])
-        }
-
-        mw.wysiwyg.change(mw.image.currentResizing[0]);
-        parent.mw.image.currentResizing.load(function () {
-            parent.mw.image.resize.resizerSet(this);
-        });
 
     },
     add_link_to_menu: function () {

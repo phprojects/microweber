@@ -120,6 +120,7 @@ body.mw-live-edit .plain-text {
            Plus
 *****************************/
 
+
 [class*='mw-plus-'] {
     position: absolute;
     visibility: visible;
@@ -128,7 +129,11 @@ body.mw-live-edit .plain-text {
     width: 16px;
     height: 16px;
     border-radius: 30px;
-    background-color: #CCCCCC;
+    background-color: #e0e0e0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 10px 10px;
     cursor: pointer;
     left: -9999px;
     top: -9999px;
@@ -142,7 +147,11 @@ body.mw-live-edit .plain-text {
     transition: opacity 0.3s;
 
 }
-
+/*[class*='mw-plus-']:after {
+    content: '\002b';
+    font-family: Microweber !important;
+    text-transform: none !important;
+}*/
 .mw-plus-top {
     margin-top: -10px;
 }
@@ -151,28 +160,11 @@ body.mw-live-edit .plain-text {
     margin-top: -10px;
 }
 
-[class*='mw-plus-']:after {
-    display: block;
-    position: absolute;
-    top: 50%;
-    margin-top: -5px;
-    right: -1px;
-    content: '';
-    width: 10px;
-    height: 10px;
-    background-color: #CCCCCC;
-    -webkit-transform: rotate(45deg);
-    -moz-transform: rotate(45deg);
-    -ms-transform: rotate(45deg);
-    -o-transform: rotate(45deg);
-    transform: rotate(45deg);
-    z-index: -1;
-}
 
-[class*='mw-plus-'].active, [class*='mw-plus-'].active:after,
-[class*='mw-plus-']:hover,
-[class*='mw-plus-']:hover:after {
-    background-color: #434343;
+
+[class*='mw-plus-'].active,
+[class*='mw-plus-']:hover{
+    background-color: #0086db;
 }
 
 [class*='mw-plus-']:active {
@@ -192,36 +184,7 @@ body.mw-live-edit .plain-text {
     max-height: 260px;
 }
 
-.modules-list-init li {
-    list-style: none;
-    clear: both;
-    cursor: pointer;
-    padding: 10px;
-    overflow: hidden;
-}
 
-.modules-list-init li:hover {
-    background: #F0F0F0;
-}
-
-.modules-list-init .mw_module_image {
-    float: left;
-}
-
-.modules-list-init .module_name {
-    float: left;
-    white-space: nowrap;
-    margin: 7px 0 0 7px;
-    width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.mw-tooltip-insert-module ul li img {
-    max-width: 32px;
-    margin-bottom: 0;
-    margin-right: 10px;
-}
 
 /****************************
          /  Plus end
@@ -299,52 +262,6 @@ body.mw-column-resizing * {
     cursor: none !important;
 }
 
-/****************************
-       While dragging ...
-*****************************/
-
-.element-active.ui-draggable-dragging {
-    z-index: 998;
-    max-height: 300px;
-    overflow: hidden;
-}
-
-li.module-item.ui-draggable-dragging,
-li.module-item.ui-draggable-dragging:before,
-li.module-item.ui-draggable-dragging:after,
-li.module-item.ui-draggable-dragging *,
-li.module-item.ui-draggable-dragging *:before,
-li.module-item.ui-draggable-dragging *:after {
-    -webkit-box-sizing: content-box;
-    -moz-box-sizing: content-box;
-    box-sizing: content-box;
-}
-
-li.module-item.ui-draggable-dragging {
-    pointer-events: none;
-    z-index: 1001;
-    border-radius: 1px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, .3);
-    background: white;
-    padding: 15px 5px !important;
-    opacity: .9;
-    touch-action: none;
-}
-
-li.module-item.ui-draggable-dragging img {
-    width: auto;
-    height: auto;
-}
-
-li.module-item.ui-draggable-dragging .mw_module_hold,
-li.module-item.ui-draggable-dragging .module_name,
-li.module-item.ui-draggable-dragging .mw_module_image {
-    margin: auto;
-    text-align: center;
-    min-width: 0;
-    display: block;
-    /*width: 90px;*/
-}
 
 /****************************************************************
 
@@ -667,13 +584,6 @@ a.mw-make-cols {
     /**/
 }
 
-.mw_edit_settings {
-    opacity: 0;
-    color: #fff !important;
-    transition: opacity 0.3s, transform 0.3s;
-    transform: scale(.5) translateY(10px);
-    z-index: 2;
-}
 
 .module-active-layouts .mw-element-name-handle {
     /*font-size: 0;
@@ -681,14 +591,8 @@ a.mw-make-cols {
     position: relative;*/
 }
 
-.mw_edit_settings [class*="mw-icon-"] {
-    font-size: 19px;
-}
 
-.mw-active-item .mw_edit_settings {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-}
+
 
 a.mw-make-cols {
     position: absolute;
@@ -778,18 +682,18 @@ html.mw_pages #items_handle {
 .mw_resizing > .mw-col {
     height: auto !important;
 }
+.mw-module-drag-clone{
+    z-index: 1102;
+}
 
 #backtoadminindropdown {
     border-radius: 0;
-    display: block;
-    text-align: left;
+    display: flex;
     background-color: #0084D8;
     color: #fff;
+    padding: 10px;
 }
 
-#backtoadminindropdown .mw-icon-back {
-    top: -1px;
-}
 
 /****************************
       Design tool
@@ -1377,10 +1281,12 @@ body.has-opened-sidebar #live_edit_toolbar {
 }
 
 .toolbar-sections-tabs {
-    float: left;
     position: relative;
     z-index: 12;
     background: #F5F5F5;
+    white-space: nowrap;
+    display: flex;
+    flex-wrap: nowrap;
 }
 
 .toolbar-sections-tabs > ul > li.hover > ul,
@@ -1435,9 +1341,10 @@ body.has-opened-sidebar #live_edit_toolbar {
 }
 
 .toolbar-sections-tabs > ul > li {
-    float: left;
     list-style: none;
     position: relative;
+    display: inline-block;
+    vertical-align: top;
 }
 
 .mw-dropdown-list {
@@ -1706,11 +1613,11 @@ body.has-opened-sidebar #live_edit_toolbar {
     Content Items states on some cases and events
 *********************************************************/
 
-div.mw_drag_started, li.module-item.ui-draggable-dragging {
-    padding: 10px;
-    min-width: 100px;
-    background: white;
+li.module-item.ui-draggable-dragging {
     list-style: none;
+    box-shadow: 0 5px 10px rgba(0,0,0,.2);
+    pointer-events: none;
+    background-color: white;
 }
 
 .mw-element-hover .mw-sorthandle {
@@ -1983,7 +1890,7 @@ body.dragStart .empty-element {
 
 .editor_wrapper_tabled {
     display: inline-block;
-    position: absolute;
+    position: relative;
 }
 
 #liveedit_wysiwyg_main_prev, #liveedit_wysiwyg_main_next {
@@ -1997,6 +1904,13 @@ body.dragStart .empty-element {
     background-repeat: no-repeat;
     background-origin: content-box;
     background-position: center;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#liveedit_wysiwyg_main_prev.active, #liveedit_wysiwyg_main_next.active{
+    opacity: 1;
+    pointer-events: all;
 }
 
 #liveedit_wysiwyg_main_prev:hover, #liveedit_wysiwyg_main_next:hover,
@@ -2375,16 +2289,18 @@ body.dragStart .empty-element {
 }
 
 #mw-toolbar-right {
-    float: right;
     background: #F5F5F5;
     padding: 0px 10px 0px 0;
-    position: relative;
+    position: absolute;
+    top: 0;
+    right: 0;
     z-index: 1;
+    white-space: nowrap;
 }
 
 .mw-toolbar-right-content {
     float: right;
-    padding: 10px 3px 10px 0;
+    padding: 9px 3px 9px 0;
 }
 
 #toolbar-dropdown-actions {
@@ -2832,8 +2748,6 @@ div[id*='SSDIVEL'] {
 }
 
 .mw-tooltip-insert-module .mw-ui-searchfield {
-    position: absolute;
-    right: 10px;
     border-radius: 3px 3px 0 0;
     border-bottom-width: 0;
 }
@@ -3122,78 +3036,36 @@ div[id*='SSDIVEL'] {
     color-stop(.5, transparent), to(transparent));
 }
 
-/*
 
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs .mw-ui-btn {
-    border: 1px solid transparent;
-    border-bottom: 1px solid #eaeaea;
-    box-shadow: none;
-    color: #999999;
-    font-size: 11px;
-    border-top-right-radius: 2px;
-    border-top-left-radius: 2px;
-    text-decoration: none;
-    letter-spacing: 0 !important;
-    padding-left: 6px;
-    padding-right: 6px;
-}
-
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs .mw-ui-btn i {
-    font-size: 22px;
-    margin-right: 6px;
-    color: #999999;
-}
-
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs .mw-ui-btn i.mwi-folder {
-    font-size: 20px;
-}
-
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs .mw-ui-btn i.mwi-cog {
-    font-size: 20px;
-}
-
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs .mw-ui-btn.active {
-    background: #f5f5f5;
-    border: 1px solid #eaeaea;
-    border-bottom: 1px solid #f5f5f5;
-    color: #4d4d4d;
-}
-
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs .mw-ui-btn.active i {
-    color: #0086db;
-}
-
-#modules-and-layouts-sidebar .mw-ui-btn-nav-tabs {
-    z-index: 999;
-    padding: 0 0 0 15px;
-}*/
-
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item {
+.module-item-layout {
     cursor: pointer;
     margin-bottom: 25px;
+
+}
+#modules-and-layouts-sidebar .module-item-layout {
     transition: .3s;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts:hover .module-item {
+#modules-and-layouts-sidebar .module-admin-modules-list-layouts:hover .module-item-layout {
     opacity: 0.8;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item:hover {
+#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item-layout:hover {
     opacity: 1;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item .mw_module_image {
+.module-item-layout .mw_module_image {
     height: auto;
     text-align: center;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item .mw_module_image img {
+.module-item-layout .mw_module_image img {
     max-height: none;
     width: 100%;
     margin-bottom: 0;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item .module_name {
+.module-item-layout .module_name {
     background: #2a2a2a;
     color: #fff;
     border-top: 1px solid #323232;
@@ -3202,73 +3074,27 @@ div[id*='SSDIVEL'] {
     font-size: 11px;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item:hover .module_name {
+.module-item-layout:hover .module_name {
     background: #0086db;
     border-top: 1px solid #0086db;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item:hover {
+.module-item-layout:hover {
     box-shadow: 7px 5px 10px -5px rgba(0, 0, 0, 0.5), -7px -5px 10px -7px rgba(0, 0, 0, 0.5);
 }
 
-/* Default Layouts */
-/*#modules-and-layouts-sidebar .module-admin-modules-list-layouts .default-layouts {
-    cursor: pointer;
-    width: 50%;
-    float: left;
-    text-align: center;
-    padding: 0px;
-}
-
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .default-layouts:hover {
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
-}
-
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .default-layouts .mw_module_hold {
-    background: transparent;
-    padding: 25px 10px;
-    display: block;
-    border: 1px solid transparent;
-    -webkit-border-radius: 2px;
-    -moz-border-radius: 2px;
-    border-radius: 2px;
-}
-
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .default-layouts:hover .mw_module_hold {
-    background: #fff;
-    border-color: #eaeaea;
-}
-
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .default-layouts .module_name {
-    color: #999999;
-    font-size: 11px;
-    margin-top: 10px;
-    display: block;
-    height: 22px;
-    line-height: 16px !important;
-    background: none;
-    border-top: 0;
-}
-
-#modules-and-layouts-sidebar .module-admin-modules-list-layouts .default-layouts:hover .module_name {
-    color: #3a3434;
-    background: none;
-    border-top: 0;
-}
-*/
 
 /* Modules */
-#modules-and-layouts-sidebar .module-admin-modules-list .module-item {
+.module-item-module {
     cursor: pointer;
     width: 50%;
     float: left;
     text-align: center;
     padding: 0px;
+    list-style: none;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list .module-item .mw_module_hold {
+.module-item-module .mw_module_hold {
     background: transparent;
     padding: 10px;
     display: block;
@@ -3277,20 +3103,20 @@ div[id*='SSDIVEL'] {
     transition: .3s;
 }
 
-body.touchscreen-device #modules-and-layouts-sidebar .module-admin-modules-list-layouts .module-item {
+body.touchscreen-device .module-item-module {
     width: 80%;
 }
 
-body.touchscreen-device #modules-and-layouts-sidebar .module-admin-modules-list .module-item {
+body.touchscreen-device .module-item-module {
     width: 35%;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list .module-item:hover .mw_module_hold {
+.module-item-module:hover .mw_module_hold {
     background: #fff;
     border-color: #eaeaea;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list .module-item .module_name {
+.module-item-module .module_name {
     color: #999999;
     font-size: 11px;
     margin-top: 5px;
@@ -3299,7 +3125,7 @@ body.touchscreen-device #modules-and-layouts-sidebar .module-admin-modules-list 
     line-height: 16px !important;
 }
 
-#modules-and-layouts-sidebar .module-admin-modules-list .module-item:hover .module_name {
+.module-item-module:hover .module_name {
     color: #3a3434;
 }
 
@@ -3368,15 +3194,14 @@ body.touchscreen-device #modules-and-layouts-sidebar .module-admin-modules-list 
 
 .toolbar-sections-tabs i.mw-icon-plus {
     font-size: 14px;
-    margin: 0 !important;
+    margin: 0;
     background: #0086db;
     color: #fff;
-    -webkit-border-radius: 30px;
-    -moz-border-radius: 30px;
     border-radius: 30px;
     width: 16px;
     height: 16px;
-    padding: 1px;
+    line-height: 16px;
+    padding: 0px;
 }
 
 .view-website-button {
@@ -3540,7 +3365,6 @@ body.isTyping .mw-cloneable-control {
 
 .wysiwyg-undo-redo {
     display: inline-block;
-    float: left;
     position: relative;
     z-index: 2;
     background: #F5F5F5;
@@ -3549,7 +3373,10 @@ body.isTyping .mw-cloneable-control {
 
 .wysiwyg-cell-undo-redo .mw-ui-btn-nav {
     margin: 10px 0 0 10px;
-    float: left;
+    white-space: nowrap;
+}
+.wysiwyg-cell-undo-redo .mw-ui-btn-nav > * {
+    float: none;
 }
 
 .wysiwyg-cell-undo-redo .mw_editor_btn {
@@ -4713,5 +4540,37 @@ html.padding-control-start .mw-handle-item {
 .mw-module-dialog-icon{
     width: 25px;
     margin:0 7px 0 0;
+}
+
+.safe-element-svg{
+    position: relative;
+    top: 2px;
+}
+
+h1.element,
+h2.element,
+h3.element,
+h4.element,
+h5.element,
+h6.element,
+p.element,
+div.element,
+section.element{
+    min-height: 15px;
+}
+
+
+#mw-plus-tooltip-selector .mw-ui-searchfield{
+    width: 100%;
+    height: auto;
+    border: 1px solid #E6E6E6;
+    -webkit-appearance: textfield;
+    appearance: textfield;
+}
+#mw-plus-tooltip-selector .mw-ui-searchfield:focus{
+    border-color: #c6c6c6;
+}
+#mw-plus-tooltip-selector .mw-ui-btn-nav{
+    display: none;
 }
 

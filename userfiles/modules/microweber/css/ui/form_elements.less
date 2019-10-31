@@ -75,6 +75,8 @@ span.mw-ui-field{
 
 select.mw-ui-field {
   -webkit-appearance: menulist;
+    padding-top: 0;
+    padding-bottom: 0;
 }
 .mw-ui-field-medium {
   padding: 6px;
@@ -174,7 +176,7 @@ div.mw-ui-field:after {
 /* Search field */
 
 .mw-ui-searchfield {
-  background: #FFFFFF url(../images/magnifier.svg) no-repeat left center;
+  background: #FFFFFF url(../images/magnifier.svg) no-repeat left center !important;
   width: 1px;
   border: 1px solid #E6E6E6;
   border-radius: 3px;
@@ -182,6 +184,7 @@ div.mw-ui-field:after {
   cursor: text;
   outline: medium none;
   padding: 8px 8px 8px 33px;
+  padding-left: 33px !important;
   opacity: 0.5;
   height: 36px;
   -webkit-transition: width 0.1s, opacity 0.2s;

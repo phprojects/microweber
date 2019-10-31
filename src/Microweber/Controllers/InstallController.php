@@ -137,29 +137,34 @@ class InstallController extends Controller
                 Config::set('microweber.pre_configured', null);
                 Config::set('microweber.pre_configured_input', null);
             }
-
+            
+            if (isset($input['admin_url'])) {
+            	Config::set('microweber.admin_url', $input['admin_url']);
+            }
+            
+            if (isset($input['site_lang'])) {
+            	Config::set('microweber.site_lang', $input['site_lang']);
+            }
 
             if (Config::get('app.key') == 'YourSecretKey!!!') {
                 if (!is_cli()) {
                     $_SERVER['argv'] = array();
                 }
                 $this->log('Generating key');
-                if (!$this->_can_i_use_artisan_key_generate_command()) {
-                    $fallback_key = str_random(32);
-                    $fallback_key_str = 'base64:' . base64_encode($fallback_key);
-                    Config::set('app.key', $fallback_key_str);
-                    $allowed_configs[] = 'app';
-                } else {
+                /*if ($this->_can_i_use_artisan_key_generate_command()) {
                     Artisan::call('key:generate', [
                         '--force' => true,
                     ]);
-                }
+                }*/
+                $fallback_key = str_random(32);
+                $fallback_key_str = 'base64:' . base64_encode($fallback_key);
+                Config::set('app.key', $fallback_key_str);
+                $allowed_configs[] = 'app';
             }
 
             $this->log('Saving config');
             Config::save($allowed_configs);
             Cache::flush();
-
 
             if ($config_only) {
                 Config::set('microweber.pre_configured', 1);
@@ -228,6 +233,9 @@ class InstallController extends Controller
                 if (!$install_step or $install_step == 5) {
                     $this->log('Setting up default options');
                     $installer = new Install\DefaultOptionsInstaller();
+                    if (isset($input['site_lang'])) {
+                        $installer->setLanguage($input['site_lang']);
+                    }
                     $installer->run();
                 }
 
@@ -237,9 +245,6 @@ class InstallController extends Controller
                     $installer->logger = $this;
                     $installer->run();
                 }
-
-
-
 
                 if ($install_step) {
                     if ($install_step != 'finalize') {

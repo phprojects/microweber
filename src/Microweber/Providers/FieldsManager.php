@@ -67,23 +67,26 @@ class FieldsManager
 
         $function_cache_id = 'fields_' . __FUNCTION__ . crc32($function_cache_id);
 
-        //$is_made = $this->app->option_manager->get($function_cache_id, 'make_default_custom_fields');
+        $is_made = $this->app->option_manager->get($function_cache_id, 'make_default_custom_fields');
 
         $make_field = array();
 
         $make_field['rel_type'] = $rel;
         $make_field['rel_id'] = $rel_id;
-        $is_made = $this->get_all($make_field);
-
-
+      //  $is_made = $this->get_all($make_field);
 
         if (isset($_mw_made_default_fields_register[$function_cache_id])) {
             return;
         }
 
-        if (is_array($is_made) and !empty($is_made)) {
+        if ($is_made) {
             return;
         }
+
+       /* if (is_array($is_made) and !empty($is_made)) {
+            return;
+        }
+        */
         $_mw_made_default_fields_register[$function_cache_id] = true;
 
         $table_custom_field = $this->table;
@@ -104,10 +107,28 @@ class FieldsManager
 
             $pos = 0;
             if (is_array($fields_csv_str)) {
-                foreach ($fields_csv_str as $field_type) {
+                foreach ($fields_csv_str as $field_name) {
+
                     $ex = array();
 
+                    $as_text_area = false;
+                    $field_type = 'text';
+                    $field_name_lower = strtolower($field_name);
 
+                    if (strpos($field_name_lower, 'message') !== false) {
+                        $as_text_area = true;
+                        $field_type = 'text';
+                    }
+
+                    $fields = mw()->ui->custom_fields();
+                    if (array_key_exists($field_name_lower, $fields)) {
+                        $field_type = $field_name;
+                    }
+                    if (in_array($field_name_lower, $fields)) {
+                        $field_type = $field_name;
+                    }
+
+                    $ex['name'] = $field_name;
                     $ex['type'] = $field_type;
                     $ex['rel_type'] = $rel;
                     $ex['rel_id'] = $rel_id;
@@ -119,19 +140,26 @@ class FieldsManager
                         $make_field['rel_type'] = $rel;
                         $make_field['rel_id'] = $rel_id;
                         $make_field['position'] = $pos;
-                        $make_field['name'] = ucfirst($field_type);
+                        $make_field['name'] = ucfirst($field_name);
                         $make_field['value'] = '';
-
-                        if ($field_type == 'message') {
-                            $field_type = 'textarea';
-                        }
                         $make_field['type'] = $field_type;
+                        $make_field['options']['field_type'] = $field_type;
+
+                        if ($as_text_area) {
+                            $make_field['options']['as_text_area'] = $as_text_area;
+                        }
 
                         $saved_fields[] = $this->save($make_field);
 
                         ++$pos;
                     }
                 }
+
+                $option = array();
+                $option['option_value'] = true;
+                $option['option_key'] = $function_cache_id;
+                $option['option_group'] = 'make_default_custom_fields';
+                $this->app->option_manager->save($option);
                 if ($pos > 0) {
                     $this->app->cache_manager->delete('custom_fields/global');
                 }
@@ -177,6 +205,10 @@ class FieldsManager
         if (isset($data['rel']) and !isset($data['rel_type'])) {
             $data['rel_type'] = $data['rel'];
         }
+        
+        if (isset($data['options']['field_type']) && !empty($data['options']['field_type'])) {
+        	$data['type'] = $data['options']['field_type'];
+        }
 
         $data_to_save = ($data);
         $data_to_save = $this->unify_params($data_to_save);
@@ -201,9 +233,9 @@ class FieldsManager
                 if (isset($form_data_from_id['type']) and $form_data_from_id['type'] != '' and (!isset($data_to_save['type']) or ($data_to_save['type']) == '')) {
                     $data_to_save['type'] = $form_data_from_id['type'];
                 }
-                if (isset($form_data_from_id['name']) and $form_data_from_id['name'] != '' and (!isset($data_to_save['name']) or ($data_to_save['name']) == '')) {
+               /* if (isset($form_data_from_id['name']) and $form_data_from_id['name'] != '' and (!isset($data_to_save['name']) or ($data_to_save['name']) == '')) {
                     $data_to_save['name'] = $form_data_from_id['name'];
-                }
+                }*/
             }
 
             if (isset($data_to_save['copy_rel_id'])) {
@@ -239,12 +271,12 @@ class FieldsManager
         if (!isset($data_to_save['type']) or trim($data_to_save['type']) == '') {
             return array('error' => 'You must set type');
         } else {
-            if (!isset($data_to_save['name'])) {
-                return array('error' => 'You must set name');
-            }
-            $cf_k = $data_to_save['name'];
-            if ($cf_k != false and !isset($data_to_save['name_key'])) {
-                $data_to_save['name_key'] = $this->app->url_manager->slug(strtolower($cf_k));
+            
+            if (isset($data_to_save['name'])) {
+                $cf_k = $data_to_save['name'];
+                if ($cf_k != false and !isset($data_to_save['name_key'])) {
+                    $data_to_save['name_key'] = $this->app->url_manager->slug(strtolower($cf_k));
+                }
             }
 
             $data_to_save['allow_html'] = true;
@@ -867,253 +899,289 @@ class FieldsManager
         if (isset($data['options']) and is_string($data['options'])) {
             $data['options'] = $this->_decode_options($data['options']);
         }
-        $dir = modules_path();
 
         $data = $this->app->url_manager->replace_site_url_back($data);
-        $template_file = 'mw-ui';
-        $css_framework = template_framework();
-        if($css_framework and is_dir($dir . DS . 'custom_fields' . DS . 'templates' . DS . $css_framework . DS)){
-            $template_file = $css_framework;
-        }
 
+        $template_files = $this->get_template_files($data);
 
-        if (isset($data['params'])) {
-	        $template_file_option = get_option('data-template', $data['params']['id']);
-	        $template_file_exp = explode('/', $template_file_option);
-	        if (!empty($template_file_exp[0])) {
-	        	$template_file = $template_file_exp[0];
-	        }
-        }
-
-        if ($template_file == 'default') {
-        	$template_file = 'mw-ui';
-        }
-
-
-        if ($settings == true or isset($data['settings'])) {
-        	$dir = $dir . DS . 'microweber'.DS.'custom_fields' . DS;
+        if ($settings || isset($data['settings'])) {
+            $file = $template_files['settings_file'];
         } else {
-        	$dir = $dir . DS . 'custom_fields' . DS . 'templates' . DS . $template_file . DS;
+            $file = $template_files['preview_file'];
         }
-        
-        $field_type = str_replace('..', '', $field_type);
-        $load_from_theme = false;
-        if (defined('ACTIVE_TEMPLATE_DIR')) {
-        	$custom_fields_from_theme = ACTIVE_TEMPLATE_DIR . 'modules' . DS . 'custom_fields' . DS . 'templates' . DS . $template_file . DS;
-        	
-            if (is_dir($custom_fields_from_theme)) {
-                if ($settings == true or isset($data['settings'])) {
-                    $file = $custom_fields_from_theme . $field_type . '_settings.php';
-                } else {
-                    $file = $custom_fields_from_theme . $field_type . '.php';
-                }
-                
-                if (is_file($file)) {
-                    $load_from_theme = true;
-                }
-            }
-        }
-        
-        if ($load_from_theme == false) {
-            if ($settings == true or isset($data['settings'])) {
-                $file = $dir . $field_type . '_settings.php';
-            } else {
-                $file = $dir . $field_type . '.php';
-            }
-        }
+
         if (!is_file($file)) {
-            $field_type = 'text';
-            if ($settings == true or isset($data['settings'])) {
-                $file = $dir . $field_type . '_settings.php';
-            } else {
-                $file = $dir . $field_type . '.php';
+           return;
+        }
+
+        $field_data = array();
+        $field_data['name'] = false;
+        $field_data['type'] = false;
+        $field_data['id'] = 0;
+        $field_data['placeholder'] = false;
+        $field_data['help'] = false;
+        $field_data['values'] = array();
+        $field_data['value'] = false;
+        $field_data['options'] = array();
+        $field_data['options']['old_price'] = false;
+
+        $field_settings = array();
+        $field_settings['rel_id'] = false;
+        $field_settings['rel_type'] = false;
+        $field_settings['required'] = false;
+        $field_settings['class'] = false;
+        $field_settings['field_size'] = 12;
+        $field_settings['as_text_area'] = false;
+        $field_settings['multiple'] = false;
+        $field_settings['type'] = 'button';
+        $field_settings['rows'] = '5';
+        $field_settings['make_select'] = false;
+        $field_settings['options']['file_types'] = array();
+
+        if (isset($data['id'])) {
+            $field_data['id'] = $data['id'];
+        }
+
+        if (isset($data['placeholder'])) {
+            $field_data['placeholder'] = $data['placeholder'];
+        }
+
+        if (isset($data['make_select'])) {
+            $field_settings['make_select'] = $data['make_select'];
+        }
+
+        if (isset($data['name'])) {
+            $field_data['name'] = $data['name'];
+        }
+
+        if (isset($data['type'])) {
+            $field_data['type'] = $data['type'];
+        }
+
+        if (isset($data['rel_type'])) {
+            $field_settings['rel_type'] = $data['rel_type'];
+        }
+        if (isset($data['rel_id'])) {
+            $field_settings['rel_id'] = $data['rel_id'];
+        }
+
+        if (isset($data['help'])) {
+            $field_data['help'] = $data['help'];
+        }
+
+        if (isset($data['options']['old_price'])) {
+            $field_data['options']['old_price'] = $data['options']['old_price'];
+        }
+
+        if (isset($data['options']['field_size_class'])) {
+            $field_settings['class'] = $data['options']['field_size_class'];
+        }
+
+        if (isset($data['options']['field_size'])) {
+            $field_settings['field_size'] = $data['options']['field_size'];
+        }
+
+        if (isset($data['options']['required'])) {
+            $field_settings['required'] = true;
+        }
+
+        if (isset($data['params']['input_class'])) {
+            $field_settings['class'] = $data['params']['input_class'];
+        }
+
+        // For input to textarea
+        if (isset($data['options']['as_text_area'])) {
+            $field_settings['as_text_area'] = true;
+        }
+
+        // For dropdown select
+        if (isset($data['options']['multiple'])) {
+            $field_settings['multiple'] = true;
+        }
+
+        // For textarea
+        if (isset($data['options']['rows'])) {
+            $field_settings['rows'] = $data['options']['rows'];
+        }
+
+        if (isset($data['value'])) {
+            $field_data['value'] = $data['value'];
+        }
+
+        if (is_array($data['value'])) {
+            $field_data['value'] = implode(',', $data['value']);
+        }
+
+        if (is_array($data['values']) && !empty($data['values'])) {
+            $field_data['values'] = $data['values'];
+        }
+
+        if (isset($data['options']['field_type'])) {
+            $field_settings['type'] = $data['options']['field_type'];
+        }
+
+        // For file upload
+        if ($data['type'] == 'upload') {
+            if (is_array($data['options']) && isset($data['options']['file_types'])) {
+                $field_settings['options']['file_types'] = array_merge($field_data['options'], $data['options']['file_types']);
             }
         }
-        $file = normalize_path($file, false);
-        
-        if (is_file($file)) {
-        	
-        	/**
-        	 * field_data['name']
-        	 * field_data['id']
-        	 * field_data['placeholder']
-        	 *
-        	 * field_settings['required']
-        	 * field_settings['class']
-        	 */
-        	
-        	$field_data = array();
-        	$field_data['name'] = false;
-        	$field_data['type'] = false;
-        	$field_data['id'] = 0;
-        	$field_data['placeholder'] = false;
-        	$field_data['help'] = false;
-        	$field_data['values'] = array();
-        	$field_data['value'] = false;
-        	$field_data['options'] = array();
-        	$field_data['options']['old_price'] = false;
-        	
-        	$field_settings = array();
-        	$field_settings['rel_id'] = false;
-        	$field_settings['rel_type'] = false;
-        	$field_settings['required'] = false;
-        	$field_settings['class'] = false;
-        	$field_settings['field_size'] = 12;
-        	$field_settings['as_text_area'] = false;
-        	$field_settings['multiple'] = false;
-        	$field_settings['type'] = 'button';
-        	$field_settings['rows'] = '5';
-        	$field_settings['make_select'] = false;
-        	$field_settings['options']['file_types'] = array();
-        	
-        	if (isset($data['id'])) {
-        		$field_data['id'] = $data['id'];
-        	}
-        	
-        	if (isset($data['make_select'])) {
-        		$field_settings['make_select'] = $data['make_select'];
-        	}
-        	
-        	if (isset($data['name'])) {
-        		$data['name'] = ucwords(str_replace('_', ' ', $data['name']));
-        		$field_data['name'] = $data['name'];
-        	}
-        	
-        	if (isset($data['type'])) {
-        		$field_data['type'] = $data['type'];
-        	}
-        	
-        	if (isset($data['rel_type'])) {
-        		$field_settings['rel_type'] = $data['rel_type'];
-        	}
-        	if (isset($data['rel_id'])) {
-        		$field_settings['rel_id'] = $data['rel_id'];
-        	}
-        	
-        	if (isset($data['help'])) {
-        		$field_data['help'] = $data['help'];
-        	}
-        	
-        	if (isset($data['options']['old_price'])) {
-        		$field_data['options']['old_price'] = $data['options']['old_price'];
-        	}
-        	
-        	if (isset($data['options']['field_size_class'])) {
-        		$field_settings['class'] = $data['options']['field_size_class'];
-        	}
-        	
-        	if (isset($data['options']['field_size'])) {
-        		$field_settings['field_size'] = $data['options']['field_size'];
-        	}
-        	
-        	if (isset($data['options']['required'])) {
-        		$field_settings['required'] = true;
-        	}
-        	
-        	if (isset($data['params']['input_class'])) {
-        		$field_settings['class'] = $data['params']['input_class'];
-        	}
-        	
-        	// For input to textarea
-        	if (isset($data['options']['as_text_area'])) {
-        		$field_settings['as_text_area'] = true;
-        	}
-        	
-        	// For dropdown select
-        	if (isset($data['options']['multiple'])) {
-        		$field_settings['multiple'] = true;
-        	}
-        	
-        	// For textarea 
-        	if (isset($data['options']['rows'])) {
-        		$field_settings['rows'] = $data['options']['rows'];
-        	}
-        	
-        	if (isset($data['value'])) {
-        		$field_data['value'] = $data['value'];
-        		$field_data['placeholder'] = $data['value'];
-        	}
-        	
-        	if (is_array($data['value'])) {
-        		$field_data['placeholder'] = implode(',', $data['value']);
-        	}
-        	
-        	if (is_array($data['values']) && !empty($data['values'])) {
-        		$field_data['values'] = $data['values'];
-        	}
-        	
-        	if (isset($data['options']['field_type'])) {
-        		$field_settings['type'] = $data['options']['field_type'];
-        	}
-        	
-        	// For file upload
-        	if ($data['type'] == 'upload') {
-	        	if (is_array($data['options']) && isset($data['options']['file_types'])) {
-	        		$field_settings['options']['file_types'] = array_merge($field_data['options'], $data['options']['file_types']);
-	        	}
-        	}
-        	
-        	// For address type options
-        	if ($data['type'] == 'address') {
-        		
-        		if ($data['values'] == false || !is_array($data['values']) || !is_array($data['values'][0])) {
-        			
-        			$default_address_fields = array('country' => 'Country', 'city' => 'City', 'zip' => 'Zip/Post code', 'state' => 'State/Province', 'address' => 'Address');
-        			
-        			$field_data['default_address_fields'] = $default_address_fields;
-        			
-        			$skip_fields = array();
-        			if (isset($params['skip-fields']) and $params['skip-fields'] != '') {
-        				$skip_fields = explode(',', $params['skip-fields']);
-        				$skip_fields = array_trim($skip_fields);
-        			}
-        			
-        			$selected_address_fields = array();
-        			if (isset($data['options']['country'])) {
-        				$selected_address_fields[] = 'country';
-        			}
-        			if (isset($data['options']['city'])) {
-        				$selected_address_fields[] = 'city';
-        			}
-        			if (isset($data['options']['zip'])) {
-        				$selected_address_fields[] = 'zip';
-        			}
-        			if (isset($data['options']['state'])) {
-        				$selected_address_fields[] = 'state';
-        			}
-        			if (isset($data['options']['address'])) {
-        				$selected_address_fields[] = 'address';
-        			}
-        			
-        			if (!empty($selected_address_fields)) {
-        				$new_address_fields = array();
-        				foreach($selected_address_fields as $field) {
-        					if (isset($default_address_fields[$field])) {
-        						$new_address_fields[$field] = $default_address_fields[$field];
-        					}
-        				}
-        				$default_address_fields = $new_address_fields;
-        			}
-        			
-        			$field_data['values'] = array_merge($field_data['values'], $default_address_fields);
-        		}
-        		$field_data['countries'] = mw()->forms_manager->countries_list();
-        	}
-        	
-        	//var_dump($data);die(); 
-        	
-        	$parseView = new \Microweber\View($file);
-        	$parseView->assign('data', $field_data);
-        	$parseView->assign('settings', $field_settings);
-        	
-        	$layout = $parseView->__toString();
-        	
-        	if($settings and defined('MW_API_HTML_OUTPUT')){
-        		$layout = $this->app->parser->process($layout, $options = false);
-        	}
-        	
-        	return $layout;
+
+        // For address type options
+        if ($data['type'] == 'address') {
+
+            if ($data['values'] == false || !is_array($data['values']) || !is_array($data['values'][0])) {
+
+                $default_address_fields = array('country' => 'Country', 'city' => 'City', 'zip' => 'Zip/Post code', 'state' => 'State/Province', 'address' => 'Address');
+
+                $field_data['default_address_fields'] = $default_address_fields;
+
+                $skip_fields = array();
+                if (isset($params['skip-fields']) and $params['skip-fields'] != '') {
+                    $skip_fields = explode(',', $params['skip-fields']);
+                    $skip_fields = array_trim($skip_fields);
+                }
+
+                $selected_address_fields = array();
+                if (isset($data['options']['country'])) {
+                    $selected_address_fields[] = 'country';
+                }
+                if (isset($data['options']['city'])) {
+                    $selected_address_fields[] = 'city';
+                }
+                if (isset($data['options']['zip'])) {
+                    $selected_address_fields[] = 'zip';
+                }
+                if (isset($data['options']['state'])) {
+                    $selected_address_fields[] = 'state';
+                }
+                if (isset($data['options']['address'])) {
+                    $selected_address_fields[] = 'address';
+                }
+
+                if (!empty($selected_address_fields)) {
+                    $new_address_fields = array();
+                    foreach($selected_address_fields as $field) {
+                        if (isset($default_address_fields[$field])) {
+                            $new_address_fields[$field] = $default_address_fields[$field];
+                        }
+                    }
+                    $default_address_fields = $new_address_fields;
+                }
+                $field_data['values'] = array_merge($field_data['values'], $default_address_fields);
+            }
+            $field_data['countries'] = mw()->forms_manager->countries_list();
         }
+
+        $parseView = new \Microweber\View($file);
+        $parseView->assign('data', $field_data);
+        $parseView->assign('settings', $field_settings);
+
+        $layout = $parseView->__toString();
+
+        if($settings and defined('MW_API_HTML_OUTPUT')){
+            $layout = $this->app->parser->process($layout, $options = false);
+        }
+
+        return $layout;
+
+    }
+
+    public function get_template_files_by_type($data, $type)
+    {
+        $preview_file = false;
+
+        $template_name = $this->get_template_name($data);
+        $default_template_name = $this->get_default_template_name($data);
+
+        $ovewrite_templates_path = ACTIVE_TEMPLATE_DIR . 'modules' . DS . 'custom_fields' . DS . 'templates';
+        $original_tempaltes_path = modules_path() . 'custom_fields' . DS . 'templates';
+
+        // Try to open overwrite template files
+        $overwrite_template_file_preview = $ovewrite_templates_path . DS . $template_name . DS . $type . '.php';
+
+        // Try to open original template files
+        $original_template_file_preview = $original_tempaltes_path . DS . $template_name . DS . $type . '.php';
+
+        // Get default tempalte files
+        $default_template_file_preview = $original_tempaltes_path . DS .  $default_template_name . DS . $type . '.php';
+
+        // Try to get overwrite template file
+        if (is_file($overwrite_template_file_preview)) {
+            $preview_file = $overwrite_template_file_preview;
+        }
+
+        // Try to get template file for current theme
+        if (!$preview_file) {
+            if (is_file($original_template_file_preview)) {
+                $preview_file = $original_template_file_preview;
+            }
+        }
+
+        // Get default template file
+        if (!$preview_file) {
+            if (is_file($default_template_file_preview)) {
+                $preview_file = $default_template_file_preview;
+            }
+        }
+
+        return $preview_file;
+    }
+
+    public function get_template_files($data)
+    {
+        $preview_file = $this->get_template_files_by_type($data, $data['type']);
+        if (!$preview_file) {
+            $preview_file = $this->get_template_files_by_type($data, 'text');
+        }
+
+        $settings_file = modules_path() . DS . 'microweber' . DS . 'custom_fields' . DS . $data['type'] . '_settings.php';
+        if (!is_file($settings_file)) {
+            $settings_file = modules_path() . DS . 'microweber' . DS . 'custom_fields' . DS . 'text_settings.php';
+        }
+
+        $settings_file = normalize_path($settings_file, FALSE);
+        $preview_file = normalize_path($preview_file, FALSE);
+
+        return array('preview_file'=>$preview_file, 'settings_file'=>$settings_file);
+    }
+
+    public function get_template_name($data)
+    {
+        $template_name = false;
+
+        if (isset($data['params']['id'])) {
+            $template_name = get_option('data-template', $data['params']['id']);
+        } else {
+            $template_name = get_option('data-template', $data['id']);
+        }
+        if ($template_name) {
+            $template_name_exp = explode('/', $template_name);
+            if (!empty($template_name_exp[0])) {
+                $template_name = $template_name_exp[0];
+            }
+        }
+
+        if (!$template_name) {
+            return $this->get_default_template_name();
+        }
+
+        return $template_name;
+    }
+
+    public function get_default_template_name() {
+
+        $template_name = false;
+
+        if (!$template_name) {
+            $template_name = template_framework();
+        }
+
+        if (!$template_name) {
+            $template_name = 'mw-ui';
+        }
+
+        return $template_name;
     }
 
     /**

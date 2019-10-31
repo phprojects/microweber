@@ -11,13 +11,13 @@ use Microweber\Utils\Backup\EncodingFix;
  * @command php phpunit.phar --filter BackupV2Test
  */
 
-class BackupV2Test extends TestCase
+class ZBackupV2Test extends TestCase
 {
 	private static $_titles = array();
 	private static $_exportedFile = '';
 	
 	public function testEncoding() {
-		
+
 		$locales = array('el_GR', 'bg_BG', 'en_EN','at_AT','ko_KR','kk_KZ','ja_JP','fi_FI','es_ES');
 		
 		foreach($locales as $locale) {
@@ -140,7 +140,55 @@ class BackupV2Test extends TestCase
 			}
 		}
 	}
-	
+
+	public function testImportSampleCsvFile() {
+
+	    $sample = userfiles_path() . '/modules/admin/backup_v2/samples/sample.csv';
+        $sample = normalize_path($sample, false);
+
+        $manager = new BackupManager();
+        $manager->setImportFile($sample);
+        $manager->setImportBatch(false);
+
+        $importStatus = $manager->startImport();
+
+        $this->assertSame(true, $importStatus['done']);
+        $this->assertSame(100, $importStatus['precentage']);
+        $this->assertSame($importStatus['current_step'], $importStatus['total_steps']);
+    }
+
+    public function testImportSampleJsonFile() {
+
+        $sample = userfiles_path() . '/modules/admin/backup_v2/samples/sample.json';
+        $sample = normalize_path($sample, false);
+
+        $manager = new BackupManager();
+        $manager->setImportFile($sample);
+        $manager->setImportBatch(false);
+
+        $importStatus = $manager->startImport();
+
+        $this->assertSame(true, $importStatus['done']);
+        $this->assertSame(100, $importStatus['precentage']);
+        $this->assertSame($importStatus['current_step'], $importStatus['total_steps']);
+    }
+
+    public function testImportSampleXlsxFile() {
+
+        $sample = userfiles_path() . '/modules/admin/backup_v2/samples/sample.xlsx';
+        $sample = normalize_path($sample, false);
+
+        $manager = new BackupManager();
+        $manager->setImportFile($sample);
+        $manager->setImportBatch(false);
+
+        $importStatus = $manager->startImport();
+
+        $this->assertSame(true, $importStatus['done']);
+        $this->assertSame(100, $importStatus['precentage']);
+        $this->assertSame($importStatus['current_step'], $importStatus['total_steps']);
+    }
+
 	public function testImportWrongFile() {
 		
 		$manager = new BackupManager();

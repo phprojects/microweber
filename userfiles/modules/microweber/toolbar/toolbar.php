@@ -31,9 +31,9 @@ if (isset($_COOKIE['mw_exp'])) {
 
         mw.require("forms.js");
         mw.require("files.js");
-        mw.require("content.js", true);
+        mw.require("content.js");
         mw.require("session.js");
-        mw.require("liveedit.js");
+        mw.require("<?php print mw()->template->get_liveeditjs_url()  ?>");
         mw.require("upgrades.js");
 
 
@@ -58,7 +58,7 @@ if (isset($_COOKIE['mw_exp'])) {
                             'Error object: ' + JSON.stringify(error)
                         ].join(' \n ');
 
-                        alert(message);
+                        console.log(message);
                     }
 
                     return false;
@@ -344,7 +344,7 @@ if (isset($_COOKIE['mw_exp'])) {
                                 $pt_opts['active_code_tag'] = 'class="active"';
                                 mw()->content_manager->pages_tree($pt_opts);
                                 ?>
-                                <a id="backtoadminindropdown" class="mw-ui-btn mw-ui-btn-invert"
+                                <a id="backtoadminindropdown"
                                    href="<?php print $back_url; ?>" title="<?php _e("Back to Admin"); ?>"> <span
                                             class="mw-icon-back"></span><span><?php _e("Back to Admin"); ?></span> </a>
                             </div>
@@ -399,13 +399,27 @@ if (isset($_COOKIE['mw_exp'])) {
 
                         <?php event_trigger('live_edit_toolbar_menu_end'); ?>
                     </ul>
+                    <div class="wysiwyg-undo-redo">
+                        <div class="wysiwyg-cell-undo-redo">
+            <span
+                class="liveedit_wysiwyg_prev"
+                id="liveedit_wysiwyg_main_prev"
+                title="<?php _e("Previous"); ?>"
+                onclick="mw.liveedit.toolbar.editor.slideLeft();"></span>
+
+
+
+                        </div>
+                    </div>
                 </div>
+
+                <?php include mw_includes_path() . 'toolbar' . DS . 'wysiwyg.php'; ?>
                 <div id="mw-toolbar-right" class="mw-defaults">
         <span
-                class="liveedit_wysiwyg_next"
-                id="liveedit_wysiwyg_main_next"
-                title="<?php _e("Next"); ?>"
-                onclick="mw.liveEditWYSIWYG.slideRight();"></span>
+            class="liveedit_wysiwyg_next"
+            id="liveedit_wysiwyg_main_next"
+            title="<?php _e("Next"); ?>"
+            onclick="mw.liveedit.toolbar.editor.slideRight();"></span>
                     <div class="mw-toolbar-right-content">
                         <?php event_trigger('live_edit_toolbar_action_buttons'); ?>
 
@@ -523,7 +537,6 @@ if (isset($_COOKIE['mw_exp'])) {
                         </div>
                     </div>
                 </div>
-                <?php include mw_includes_path() . 'toolbar' . DS . 'wysiwyg.php'; ?>
             </div>
             <?php event_trigger('live_edit_toolbar_controls'); ?>
 
@@ -535,158 +548,51 @@ if (isset($_COOKIE['mw_exp'])) {
 
 
     <script>
-        mw.liveEditWYSIWYG = {
-            calc: {
-                SliderButtonsNeeded: function (parent) {
-                    var t = {left: false, right: false};
-                    if (parent == null || !parent) {
-                        return;
-                    }
-                    var el = parent.firstElementChild;
-                    if ($(parent).width() > mw.$(el).width()) return t;
-                    var a = mw.$(parent).offset().left + mw.$(parent).width();
-                    var b = mw.$(el).offset().left + mw.$(el).width();
-                    if (b > a) {
-                        t.right = true;
-                    }
-                    if ($(el).offset().left < mw.$(parent).offset().left) {
-                        t.left = true;
-                    }
-                    return t;
-                },
-                SliderNormalize: function (parent) {
-                    if (parent === null || !parent) {
-                        return false;
-                    }
-                    var el = parent.firstElementChild;
-                    var a = mw.$(parent).offset().left + mw.$(parent).width();
-                    var b = mw.$(el).offset().left + mw.$(el).width();
-                    if (b < a) {
-                        return (a - b);
-                    }
-                    return false;
-                },
-                SliderNext: function (parent, step) {
-                    if (parent === null || !parent) {
-                        return false;
-                    }
-                    var el = parent.firstElementChild;
-                    if ($(parent).width() > mw.$(el).width()) return 0;
-                    var a = mw.$(parent).offset().left + mw.$(parent).width();
-                    var b = mw.$(el).offset().left + mw.$(el).width();
-                    var step = step || mw.$(parent).width();
-                    var curr = parseFloat(window.getComputedStyle(el, null).left);
-                    if (a < b) {
-                        if ((b - step) > a) {
-                            return (curr - step);
-                        }
-                        else {
-                            return curr - (b - a);
-                        }
-                    }
-                    else {
-                        return curr - (b - a);
-                    }
-                },
-                SliderPrev: function (parent, step) {
-                    if (parent === null || !parent) {
-                        return false;
-                    }
-                    var el = parent.firstElementChild;
-                    var step = step || mw.$(parent).width();
-                    var curr = parseFloat(window.getComputedStyle(el, null).left);
-                    if (curr < 0) {
-                        if ((curr + step) < 0) {
-                            return (curr + step);
-                        }
-                        else {
-                            return 0;
-                        }
-                    }
-                    else {
-                        return 0;
-                    }
-                }
-            },
-            ed: mwd.getElementById('liveedit_wysiwyg'),
-            nextBTNS: mw.$(".liveedit_wysiwyg_next"),
-            prevBTNS: mw.$(".liveedit_wysiwyg_prev"),
-            step: function () {
-                return $(mw.liveEditWYSIWYG.ed).width();
-            },
-            denied: false,
-            buttons: function () {
-                var b = mw.liveEditWYSIWYG.calc.SliderButtonsNeeded(mw.liveEditWYSIWYG.ed);
-                if (b == null) {
-                    return;
-                }
-                if (b.left) {
-                    mw.liveEditWYSIWYG.prevBTNS.show();
-                }
-                else {
-                    mw.liveEditWYSIWYG.prevBTNS.hide();
-                }
-                if (b.right) {
-                    mw.liveEditWYSIWYG.nextBTNS.show();
-                }
-                else {
-                    mw.liveEditWYSIWYG.nextBTNS.hide();
-                }
-            },
-            slideLeft: function () {
-                if (!mw.liveEditWYSIWYG.denied) {
-                    mw.liveEditWYSIWYG.denied = true;
-                    var el = mw.liveEditWYSIWYG.ed.firstElementChild;
-                    var to = mw.liveEditWYSIWYG.calc.SliderPrev(mw.liveEditWYSIWYG.ed, mw.liveEditWYSIWYG.step());
-                    $(el).animate({left: to}, function () {
-                        mw.liveEditWYSIWYG.denied = false;
-                        mw.liveEditWYSIWYG.buttons();
-                    });
-                }
-            },
-            slideRight: function () {
-                if (!mw.liveEditWYSIWYG.denied) {
-                    mw.liveEditWYSIWYG.denied = true;
-                    var el = mw.liveEditWYSIWYG.ed.firstElementChild;
+        $(window).on('load', function () {
 
-                    var to = mw.liveEditWYSIWYG.calc.SliderNext(mw.liveEditWYSIWYG.ed, mw.liveEditWYSIWYG.step());
-                    $(el).animate({left: to}, function () {
-                        mw.liveEditWYSIWYG.denied = false;
-                        mw.liveEditWYSIWYG.buttons();
-                    });
-                }
-            },
-            fixConvertible: function (who) {
-                var who = who || ".wysiwyg-convertible";
-                var who = $(who);
-                if (who.length > 1) {
-                    $(who).each(function () {
-                        mw.liveEditWYSIWYG.fixConvertible(this);
-                    });
-                    return false;
-                }
-                else {
-                    var w = $(window).width();
-                    var w1 = who.offset().left + who.width();
-                    if (w1 > w) {
-                        who.css("left", -(w1 - w));
-                    }
-                    else {
-                        who.css("left", 0);
-                    }
-                }
-            }
-        }
-        $(window).load(function () {
-            mw.liveEditWYSIWYG.buttons();
+            mw.liveedit.toolbar.editor.init();
+            mw.liveedit.toolbar.editor.buttons();
             $(window).on("resize", function () {
-                mw.liveEditWYSIWYG.buttons();
+                mw.liveedit.toolbar.editor.buttons();
 
             });
-            mw.interval(function () {
-                var n = mw.liveEditWYSIWYG.calc.SliderNormalize(mw.liveEditWYSIWYG.ed);
+            mw.interval('liveEditWYSIWYG', function () {
+                var n = mw.liveedit.toolbar.editor.calc.SliderNormalize(mw.liveedit.toolbar.editor.ed);
                 if (!!n) {
-                    mw.liveEditWYSIWYG.slideRight();
+                    // mw.liveedit.toolbar.editor.slideRight();
+                }
+                var edl = mw.$("#liveedit_wysiwyg");
+                var ewidth = 0;
+                edl.find('.wysiwyg-cell').each(function(){
+                    ewidth += this.offsetWidth;
+                });
+                edl.find('.wysiwyg-table').width(ewidth)
+
+                edl.css({
+                    maxWidth: 'calc(100% - '
+                    + ((edl.offset().left + mw.$('#mw-toolbar-right').width()) + 20 )
+                    + 'px)'
+                });
+                mw.liveedit.toolbar.editor.buttons();
+
+            });
+
+            $(".wysiwyg-table").draggable({
+                axis: 'x',
+                drag : function(event,ui){
+                    var parent = ui.helper[0].parentNode;
+
+                    var dragWidth = ui.helper[0].clientWidth;
+                    var parentWidth = parent.clientWidth;
+
+                    var widthDifference = dragWidth - parentWidth;
+
+
+                    if(ui.position.left > 0) ui.position.left = 0;
+                    else if(ui.position.left < -widthDifference) ui.position.left = -widthDifference;
+
+
+
                 }
             });
 
@@ -695,7 +601,7 @@ if (isset($_COOKIE['mw_exp'])) {
 
             mw.$(".show_editor").click(function () {
                 mw.$("#liveedit_wysiwyg").toggle();
-                mw.liveEditWYSIWYG.buttons();
+                mw.liveedit.toolbar.editor.buttons();
                 $(this).toggleClass("active");
             });
 
@@ -777,11 +683,11 @@ if (isset($_COOKIE['mw_exp'])) {
     });
 </script>
 
-<span class="mw-plus-top mw-wyswyg-plus-element">+</span>
-<span class="mw-plus-bottom mw-wyswyg-plus-element">+</span>
+<span class="mw-plus-top mw-wyswyg-plus-element"></span>
+<span class="mw-plus-bottom mw-wyswyg-plus-element"></span>
 
 <div style="display: none" id="plus-modules-list">
-    <input type="text" class="mw-ui-searchfield"/>
+    <input type="text" class="mw-ui-searchfield" placeholder="<?php _e('Search') ?>"/>
     <div class="mw-ui-btn-nav mw-ui-btn-nav-tabs pull-left">
         <span class="mw-ui-btn mw-ui-btn-medium active"><i class="mw-icon-module"></i> <?php _e("Modules"); ?></span>
         <span class="mw-ui-btn mw-ui-btn-medium"><i class="mw-icon-template"></i> <?php _e("Layouts"); ?></span>

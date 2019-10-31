@@ -9,6 +9,7 @@ class BackupManager
 	public $exportAllData = false;
 	public $exportData = ['categoryIds'=>[], 'contentIds'=>[], 'tables'=>[]];
 	public $exportType = 'json';
+	public $exportIncludeMedia = false;
 	public $importType = false;
 	public $importFile = false;
 	public $importBatch = true;
@@ -61,6 +62,10 @@ class BackupManager
 		$this->exportData[$dataType] = $dataIds;
 	}
 
+	public function setExportIncludeMedia($includeMedia) {
+		$this->exportIncludeMedia = $includeMedia;
+	}
+	
 	/**
 	 * Set import file format
 	 * @param string $type
@@ -109,6 +114,7 @@ class BackupManager
 			$export->setType($this->exportType);
 			$export->setExportData($this->exportData);
 			$export->setExportAllData($this->exportAllData);
+			$export->setIncludeMedia($this->exportIncludeMedia);
 			
 			return $export->start();
 		
@@ -134,7 +140,11 @@ class BackupManager
 			if (isset($content['error'])) {
 				return $content;
 			}
-			
+
+			if (isset($content['must_choice_language']) && $content['must_choice_language']) {
+			    return $content;
+            }
+
 			$writer = new DatabaseWriter();
 			$writer->setContent($content['data']);
 			$writer->setOverwriteById($this->importOvewriteById);

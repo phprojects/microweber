@@ -2,6 +2,46 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
+
+## [1.1.13] - 2019-10-25
+- Fixes on mw.dialog 
+- Fixes on Custom fields 
+- Fixes on Calendar module in Live Edit mode
+- Fixes on Modal mw.tools.modal.get(...) is not a function when in mw.dialog
+- Fixes on Testimonials module select image does not work
+- Fixes on UI in RTL languages
+- Fixes on Import from CSV 
+- Other fixes
+- [see all changes....](https://github.com/microweber/microweber/compare/1.1.12...1.1.13 "")
+
+
+## [1.1.12] - 2019-10-10
+- Various live edit fixes
+- cannot save "edit as HTML"
+- Handle overlap problem ?
+- Custom fields hidden field does not work
+- Files browser add thumbnail size
+- Extra tags on format of Heading
+- Modal window scroll is missing
+- Uploader in folder does not work
+- Edit link Modal in small window
+- Table editor is missing in live edit
+- Jumping modal
+- Shipping to country module in live edit
+- Video module lazyload
+- Modal horizontal scroll
+- Fix toolbar align to be on left
+- You must not to be able to write in icon
+- Contact form module fixed
+- Added option for user registration to be able to be approved by admin
+- Added bank transfer payment method
+- Added elements to be able to come from the active template
+- Added custom fields module template support
+- Added mail templates
+- Other fixes
+- [see all changes....](https://github.com/microweber/microweber/compare/1.1.11...1.1.12 "")
+
+
 ## [1.1.11] - 2019-09-11
 - Various live edit fixes
 - Fixes on the custom fields module to support templates 
@@ -15,6 +55,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added ability to change background image position 
 - Other fixes
 - [see all changes....](https://github.com/microweber/microweber/compare/1.1.10...1.1.11 "")
+
 
 ## [1.1.10] - 2019-08-02
 - Various live edit fixes
@@ -61,7 +102,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - [see all changes....](https://github.com/microweber/microweber/compare/1.1.7...1.1.8 "")
 
 
-
 ## [1.1.7] - 2019-06-21
 - Icons for "Live Edit" sidebar
 - Visual editor bug fixes and impovememnts like padding editor, erc
@@ -76,7 +116,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Added ability to set size of custom fields
 - Other fixes
 - [see all changes....](https://github.com/microweber/microweber/compare/1.1.6...1.1.7 "")
-
 
 
 ## [1.1.6] - 2019-05-21
@@ -94,7 +133,6 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Accordeon modules does not work
 - Fix categories display on posts module
 - [see all changes....](https://github.com/microweber/microweber/compare/1.1.5...1.1.6 "")
-
 
 
 ## [1.1.5] - 2019-05-02
@@ -141,12 +179,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - [see all changes....](https://github.com/microweber/microweber/compare/1.1.2...1.1.3 "")
 
 
-
 ## [1.1.2.1] - 2018-12-14
 - Maintenance release 
 - Some fixes on the live edit 
 - Custom CSS editor now saves properly
 - Added compatibility with Gramarly and Naptha browser plugins
+
 
 ## [1.1.2] - 2018-12-06
 - Major update 

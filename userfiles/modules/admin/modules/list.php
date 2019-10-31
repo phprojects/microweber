@@ -13,7 +13,7 @@ $show_grouped_by_cats = false;
 $hide_dynamic_layouts = false;
 $disable_elements = false;
 if(isset($template_config['elements_mode']) and $template_config['elements_mode'] == 'disabled'){
-
+//dd($template_config);
     $disable_elements = true;
 
 }
@@ -29,6 +29,7 @@ if (isset($is_elements) and $is_elements == true) {
         $el_params['layout_type'] = $params['layout_type'];
     }
     $modules = mw()->layouts_manager->get($el_params);
+    //$modules = false;
 
     if ($modules == false) {
         // scan_for_modules($modules_options);
@@ -38,30 +39,45 @@ if (isset($is_elements) and $is_elements == true) {
 
 
     }
+
+
+
+
+
+   // dd($modules);
+
     if ($modules == false) {
         $modules = array();
     }
 
-if($disable_elements){
+    $elements_from_template = mw()->layouts_manager->get_elements_from_current_site_template();
+    if (!empty($elements_from_template)) {
+
+        $modules = array_merge($modules, $elements_from_template);
+
+    }
+
+
+
+    if($disable_elements){
     $modules = array();
 }
 
 
     // REMOVE
     //$modules = array();
-
+//return;
 
     // $dynamic_layouts = mw()->layouts_manager->get_all('no_cache=1&get_dynamic_layouts=1');
     $dynamic_layouts = false;
     $module_layouts_skins = false;
     $dynamic_layouts = mw()->layouts_manager->get_all('no_cache=1&get_dynamic_layouts=1');
-    $module_layouts_skins = mw()->modules->templates('layouts');
-
+      $module_layouts_skins = mw()->modules->templates('layouts');
     if($hide_dynamic_layouts){
-        $dynamic_layouts =  false;
-        $module_layouts_skins =  false;
-
+         $dynamic_layouts =  false;
+         $module_layouts_skins =  false;
     }
+
 
     // $module_layouts_skins_def = mw()->modules->templates('layouts',false, false, 'module_dir');
     //$module_layouts_skins_def = mw()->modules->templates('layouts',false, false, 'dream');
@@ -176,7 +192,7 @@ if (($modules and !$modules_by_categories) or ($modules and !$show_grouped_by_ca
 
 
 
- 
+
 if (isset($_COOKIE['recommend']) and is_string($_COOKIE['recommend']) and isset($modules) and is_array($modules)) {
     $recommended = json_decode($_COOKIE['recommend'], true);
 
@@ -296,20 +312,29 @@ if (isset($_COOKIE['recommend']) and is_string($_COOKIE['recommend']) and isset(
     </script>
 
 
-    <?php if (isset($module_layouts_skins) and is_array($module_layouts_skins)): ?>
-        <?php $i = 0; ?>
+    <?php
 
+    if (isset($module_layouts_skins) and is_array($module_layouts_skins)): ?>
         <?php
 
+
+
+        $i = 0; ?>
+
+        <?php
 
 
         foreach ($module_layouts_skins as $dynamic_layout): ?>
             <?php if (isset($dynamic_layout['layout_file'])): ?>
                 <li data-module-name="layouts" ondrop="true" template="<?php print $dynamic_layout['layout_file'] ?>"
-                    data-filter="<?php print $dynamic_layout['name'] ?>" class="module-item"
+                    data-filter="<?php print $dynamic_layout['name'] ?>" class="module-item module-item-layout"
                     unselectable="on">
                     <span class="mw_module_hold">
-                        <?php if (!isset($dynamic_layout['screenshot'])): ?>
+                        <?php
+
+
+
+                        if (!isset($dynamic_layout['screenshot'])): ?>
                             <?php $dynamic_layout['screenshot'] = $def_icon; ?>
                         <?php endif; ?>
                         <span class="mw_module_image">
@@ -330,7 +355,10 @@ if (isset($_COOKIE['recommend']) and is_string($_COOKIE['recommend']) and isset(
                               alt="<?php isset($dynamic_layout['description']) ? print addslashes($dynamic_layout['description']) : ''; ?>"><?php print titlelize(_e($dynamic_layout['name'], true)); ?></span>
                     </span>
                 </li>
-            <?php endif; ?>
+            <?php
+
+
+            endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
 
@@ -404,7 +432,10 @@ if (isset($_COOKIE['recommend']) and is_string($_COOKIE['recommend']) and isset(
                             data-filter="<?php print $module_item['name'] ?>"
                             ondrop="true"
                             data-category="<?php isset($module_item['categories']) ? print addslashes($module_item['categories']) : ''; ?>"
-                            class="module-item module-cat-toggle-<?php print $mod_cat ?> <?php if ($mod_obj_str == 'elements'): ?>default-layouts<?php endif; ?><?php if (isset($module_item['as_element']) and intval($module_item['as_element'] == 1) or (isset($is_elements) and $is_elements == true)) : ?> module-as-element<?php endif; ?>">
+                    <?php if (isset($module_item['template'])) { ?>
+                            template="<?php print $module_item['template'] ?>"
+                    <?php } ?>
+                            class="module-item module-item-module module-cat-toggle-<?php print $mod_cat ?> <?php if ($mod_obj_str == 'elements'): ?>default-layouts<?php endif; ?><?php if (isset($module_item['as_element']) and intval($module_item['as_element'] == 1) or (isset($is_elements) and $is_elements == true)) : ?> module-as-element<?php endif; ?>">
                     <span unselectable="on" class="mw_module_hold"
                           title="<?php print addslashes($module_item["name"]); ?>. <?php print addslashes($module_item["description"]) ?>">
 

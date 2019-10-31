@@ -130,7 +130,6 @@ mw.drag = {
 
             })
     },
-    external_grids_row_classes: ['row'],
     external_grids_col_classes: ['row', 'col-lg-1', 'col-lg-10', 'col-lg-11', 'col-lg-12', 'col-lg-2', 'col-lg-3', 'col-lg-4', 'col-lg-5', 'col-lg-6', 'col-lg-7', 'col-lg-8', 'col-lg-9', 'col-md-1', 'col-md-10', 'col-md-11', 'col-md-12', 'col-md-2', 'col-md-3', 'col-md-4', 'col-md-5', 'col-md-6', 'col-md-7', 'col-md-8', 'col-md-9', 'col-sm-1', 'col-sm-10', 'col-sm-11', 'col-sm-12', 'col-sm-2', 'col-sm-3', 'col-sm-4', 'col-sm-5', 'col-sm-6', 'col-sm-7', 'col-sm-8', 'col-sm-9', 'col-xs-1', 'col-xs-10', 'col-xs-11', 'col-xs-12', 'col-xs-2', 'col-xs-3', 'col-xs-4', 'col-xs-5', 'col-xs-6', 'col-xs-7', 'col-xs-8', 'col-xs-9'],
     external_css_no_element_classes: ['container','navbar', 'navbar-header', 'navbar-collapse', 'navbar-static', 'navbar-static-top', 'navbar-default', 'navbar-text', 'navbar-right', 'navbar-center', 'navbar-left', 'nav navbar-nav', 'collapse', 'header-collapse', 'panel-heading', 'panel-body', 'panel-footer'],
     section_selectors: ['.module-layouts'],
@@ -263,10 +262,9 @@ mw.drag = {
         }
 
     },
-    columnout: false,
     noop: mwd.createElement('div'),
     create: function() {
-        mw.top_half = false;
+
         var edits = mwd.body.querySelectorAll(".edit"),
             elen = edits.length,
             ei = 0;
@@ -315,11 +313,18 @@ mw.drag = {
                         }
                     }
                 } else {
-                    mw.ea.data.currentGrabbed = mw.dragCurrent;
-                    mw.tools.removeClass(this, 'isTyping');
-                    mw.ea.interactionAnalizer(event);
-                    mw.$(".currentDragMouseOver").removeClass("currentDragMouseOver");
-                    mw.$(mw.currentDragMouseOver).addClass("currentDragMouseOver");
+                    var sidebar = document.getElementById('live_edit_side_holder');
+                    if(sidebar && sidebar.contains && sidebar.contains(mw.mm_target)){
+                        mw.dropable.hide();
+                        mw.ea.data.target = null;
+                    } else {
+                        mw.ea.data.currentGrabbed = mw.dragCurrent;
+                        mw.tools.removeClass(this, 'isTyping');
+                        mw.ea.interactionAnalizer(event);
+                        mw.$(".currentDragMouseOver").removeClass("currentDragMouseOver");
+                        mw.$(mw.currentDragMouseOver).addClass("currentDragMouseOver");
+                    }
+
                 }
             }
         });
@@ -369,83 +374,16 @@ mw.drag = {
             }
         });
 
-        mw.on("ItemLeave", function(e, target) {
-            mw.$(mw.handle_item).css({
-                top: "",
-                left: ""
-            });
-        });
     },
 
     init: function(selector, callback) {
-        if (!mw.handle_item) {
-
-            mw.$(mwd.body).append(mw.settings.handles.module);
-            mw.$(mwd.body).append(mw.settings.handles.row);
-            mw.$(mwd.body).append(mw.settings.handles.element);
-            mw.$(mwd.body).append(mw.settings.handles.item);
-
-
-            mw.handle_element = mwd.getElementById('mw_handle_element');
-            mw.handle_item = '';
-
-            var pd = '<div class="mw-module-quick-options">'
-                + '<span class="mw-module-quick-options-menu"></span>'
-                +  '<div class="mw-module-quick-options-content">'
-                +  '<label>Top spacing</label>'
-                +  '<input type="range">'
-                +  '<label>Bottom spacing</label>'
-                +  '<input type="range">'
-                +  '<label>Top and bottom</label>'
-                +  '<input type="range">'
-                +  '</div></div>';
-
-
-            mw.$(mw.handle_item).mouseenter(function() {
-                var el = mw.$(this);
-                var curr = el.data("curr");
-                curr.id = 'item_' + mw.random();
-                el.draggable("option", "helper", function() {
-                    var clone = mw.$(curr).clone(true);
-                    clone.css({
-                        width: mw.$(curr).width(),
-                        height: mw.$(curr).height()
-                    });
-                    return clone;
-                });
-            }).click(function() {
-                var curr = mw.$(this).data("curr");
-                if (!$(curr).hasClass("element-current")) {
-                    mw.trigger("ItemClick", curr);
-                }
-            });
-
-            mw.$(mw.handle_item).draggable({
-                cursorAt: {
-                    top: -30
-                },
-                start: function() {
-                    mw.isDrag = true;
-                    var curr = mw.$(mw.handle_item).data("curr");
-                    mw.dragCurrent =mw.ea.data.currentGrabbed = curr;
-                    mw.$(mw.dragCurrent).invisible().addClass("mw_drag_current");
-                    mw.trigger("AllLeave");
-                    mw.drag.fix_placeholders();
-                    mw.$(mwd.body).addClass("dragStart");
-                    mw.image_resizer._hide();
-                    mw.wysiwyg.change(mw.dragCurrent);
-                },
-                stop: function() {
-                    mw.$(mwd.body).removeClass("dragStart");
-                }
-            });
-        }
         mw.drag.the_drop();
     },
     properFocus: function(event) {
+        var tofocus;
         if (mw.tools.hasClass(event.target, 'mw-row') || mw.tools.hasClass(event.target, 'mw-col')) {
             if (mw.tools.hasClass(event.target, 'mw-col')) {
-                var tofocus = event.target.querySelector('.mw-col-container');
+                tofocus = event.target.querySelector('.mw-col-container');
             } else {
                 var i = 0,
                     cols = event.target.children,
@@ -466,7 +404,7 @@ mw.drag = {
             if (!!tofocus && tofocus.querySelector('.element') !== null) {
                 var arr = tofocus.querySelectorAll('.element'),
                     l = arr.length;
-                var tofocus = arr[l - 1];
+                tofocus = arr[l - 1];
 
             }
             if (!!tofocus) {
@@ -490,8 +428,15 @@ mw.drag = {
         if (!$(mwd.body).hasClass("bup")) {
             mw.$(mwd.body).addClass("bup");
 
-           /* $(document.body).on('drop', function(e){
-                var ev = e.originalEvent || e;
+           $(document.body).on('drop', function(e){
+               var ev = e.originalEvent || e;
+               if(mw.wysiwyg.isTargetEditable(ev.target)) {
+                   ev.preventDefault();
+               }
+
+                /*
+                    // todo:
+
                 if(mw.wysiwyg.isTargetEditable(ev.target)){
                     var items = ev.dataTransfer.items;
                     for(var i=0; i< items.length; i++){
@@ -499,9 +444,9 @@ mw.drag = {
                             mw.wysiwyg.insert_html(mw.wysiwyg.html2text(a))
                         })
                     }
-                    ev.preventDefault();
-                }
-            });*/
+
+                }*/
+            });
 
             mw.$(mwd.body).on("mouseup touchend", function(event) {
                 mw.image._dragcurrent = null;
@@ -526,7 +471,7 @@ mw.drag = {
                     ];
 
                     var currentComponent = mw.tools.firstParentOrCurrentWithAnyOfClasses(target, componentsClasses);
-                    var fonttarget = mw.wysiwyg.firstElementThatHasFontIconClass(target);
+                    var fonttarget = mw.liveedit.data.get('mouseup', 'isIcon');
 
                     if( mw.tools.hasAnyOfClassesOnNodeOrParent(target, componentsClasses)) {
                         if (currentComponent && !fonttarget) {
@@ -570,7 +515,7 @@ mw.drag = {
                     }
 
                     if (fonttarget && !mw.tools.hasAnyOfClasses(target, ['element','module'])) {
-                        if ((fonttarget.tagName == 'I' || fonttarget.tagName == 'SPAN') && mw.tools.hasParentsWithClass(fonttarget, 'edit') && !mw.tools.hasParentsWithClass(fonttarget, 'dropdown')) {
+                        if ((fonttarget.tagName === 'I' || fonttarget.tagName === 'SPAN') && mw.tools.hasParentsWithClass(fonttarget, 'edit') && !mw.tools.hasParentsWithClass(fonttarget, 'dropdown')) {
                             if (!mw.tools.hasParentsWithClass(fonttarget, 'module')) {
                                 mw.trigger("IconElementClick", fonttarget);
                                 mw.trigger("ComponentClick", [fonttarget, 'icon']);
@@ -589,7 +534,7 @@ mw.drag = {
                     } else if (mw.tools.hasParentsWithClass(target, 'mw_item')) {
                         mw.trigger("ItemClick", mw.$(target).parents(".mw_item")[0]);
                     }
-                    if (target.tagName == 'IMG' && mw.tools.hasParentsWithClass(target, 'edit')) {
+                    if (target.tagName === 'IMG' && mw.tools.hasParentsWithClass(target, 'edit')) {
                         var order = mw.tools.parentsOrder(mw.mm_target, ['edit', 'module']);
                         if ((order.module == -1) || (order.edit > -1 && order.edit < order.module)) {
                             if (!mw.tools.hasParentsWithClass(target, 'mw-defaults')) {
@@ -602,12 +547,14 @@ mw.drag = {
                         mw.trigger("BodyClick", target);
                     }
 
-                    if (target.tagName === 'TABLE' && mw.tools.hasParentsWithClass(target, 'edit') && !mw.tools.hasParentsWithClass(target, 'module')) {
-                        mw.trigger("TableClick", target);
+
+                    var isTd =  target.tagName === 'TD' ? target : mw.tools.firstParentWithTag(target, 'td');
+                    if(!!isTd){
+                        if(mw.tools.parentsOrCurrentOrderMatchOrOnlyFirst(target, ['edit', 'module'])){
+                            mw.trigger("TableTdClick", target);
+                        }
                     }
-                    if (target.tagName === 'TD' && mw.tools.hasParentsWithClass(target, 'edit')  && !mw.tools.hasParentsWithClass(target, 'module')) {
-                        mw.trigger("TableTdClick", target);
-                    }
+
                     if (mw.tools.hasClass(target, 'mw-empty') || mw.tools.hasParentsWithClass(target, 'mw-empty')) {
 
                     } else {
@@ -741,7 +688,7 @@ mw.drag = {
             i = 0;
         if (l > 0) {
             for (; i < l; i++) {
-                if (els[i].querySelector('p,div,li,h1,h2,h3,h4,h5,h6') === null && !mw.tools.hasClass(els[i], 'plain-text')) {
+                if (els[i].querySelector('p,div,li,h1,h2,h3,h4,h5,h6,figure,img') === null && !mw.tools.hasClass(els[i], 'plain-text')) {
                     if (!mw.tools.hasClass(els[i].className, 'nodrop') && !mw.tools.hasClass(els[i].className, 'mw-empty')) {
                         if(!mw.tools.hasAnyOfClassesOnNodeOrParent(els[i], ['safe-mode'])){
                             els[i].innerHTML = '<p class="element">' + els[i].innerHTML + '</p>';

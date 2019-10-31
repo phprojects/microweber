@@ -47,12 +47,10 @@ class FormsManager
         $is_single = false;
 
         if (isset($params['single']) and $params['single']) {
-        	$is_single = true;
-        	unset($params['single']);
+            $is_single = true;
+            unset($params['single']);
 
         }
-
-
 
         $data = $this->app->database_manager->get($params);
 
@@ -72,8 +70,8 @@ class FormsManager
                     }
                 }
 
-                if($is_single){
-                	return $item;
+                if ($is_single) {
+                    return $item;
                 }
                 $ret[] = $item;
             }
@@ -113,9 +111,9 @@ class FormsManager
 
     public function post($params)
     {
-    	if (isset($params['for_id']) && !empty($params['for_id'])) {
-    		$params['for_id'] = str_replace("-custom-fields", false, $params['for_id']);
-    	}
+        if (isset($params['for_id']) && !empty($params['for_id'])) {
+            $params['for_id'] = str_replace("-custom-fields", false, $params['for_id']);
+        }
 
         $adm = $this->app->user_manager->is_admin();
         if (defined('MW_API_CALL')) {
@@ -163,7 +161,7 @@ class FormsManager
         if (!isset($for_id)) {
             return array('error' => 'Please provide for_id parameter with module id');
         }
-        $user_mails = array();
+
 
         $terms_and_conditions_name = 'terms_contact';
 
@@ -173,6 +171,21 @@ class FormsManager
         $dis_cap = $this->app->option_manager->get('disable_captcha', $for_id) == 'y';
         if (!$dis_cap) {
             $dis_cap = $this->app->option_manager->get('disable_captcha', $default_mod_id) == 'y';
+        }
+        
+        $email_from = $this->app->option_manager->get('email_from', $for_id);
+        if (!$email_from) {
+        	$email_from = $this->app->option_manager->get('email_from', $default_mod_id);
+        }
+        
+        $from_name = $this->app->option_manager->get('email_from_name', $for_id);
+        if (!$from_name) {
+        	$from_name = $this->app->option_manager->get('email_from_name', $default_mod_id);
+        }
+
+        $newsletter_subscription = $this->app->option_manager->get('newsletter_subscription', $for_id) == 'y';
+        if (!$newsletter_subscription) {
+            $newsletter_subscription = $this->app->option_manager->get('newsletter_subscription', $default_mod_id) == 'y';
         }
 
 
@@ -188,7 +201,7 @@ class FormsManager
 
         $email_reply = $this->app->option_manager->get('email_reply', $for_id);
         if (!$email_reply) {
-        	$email_reply = $this->app->option_manager->get('email_reply', $default_mod_id);
+            $email_reply = $this->app->option_manager->get('email_reply', $default_mod_id);
         }
 
         $email_autorespond = $this->app->option_manager->get('email_autorespond', $for_id);
@@ -228,42 +241,9 @@ class FormsManager
         }
 
 
-        $user_require_terms = $this->app->option_manager->get('require_terms', $for_id);
-
-
-        if (!$user_require_terms) {
-            $user_require_terms = $this->app->option_manager->get('require_terms', $default_mod_id);
-        }
-
-
-        if ($user_id_or_email and $user_require_terms) {
-            if (!$user_id_or_email) {
-                return array(
-                    'error' => _e('You must provide email address', true),
-                    'form_data_required' => 'email'
-                );
-
-            } else {
-
-                $check_term = $this->app->user_manager->terms_check($terms_and_conditions_name, $user_id_or_email);
-
-                if (!$check_term) {
-                    if (isset($params['terms']) and $params['terms']) {
-                        $this->app->user_manager->terms_accept($terms_and_conditions_name, $user_id_or_email);
-                    } else {
-                        return array(
-                            'error' => _e('You must agree to The Terms and Conditions', true),
-                            'form_data_required' => 'terms',
-                            'form_data_module' => 'users/terms'
-                        );
-                    }
-                }
-            }
-        }
-
 
         if (isset($params['captcha'])) {
-        	$dis_cap = false;
+            $dis_cap = false;
         }
 
         if ($dis_cap == false) {
@@ -315,6 +295,97 @@ class FormsManager
         }
 
 
+
+        $user_require_terms = $this->app->option_manager->get('require_terms', $for_id);
+
+
+        if (!$user_require_terms) {
+            $user_require_terms = $this->app->option_manager->get('require_terms', $default_mod_id);
+        }
+
+
+        if ($user_require_terms) {
+
+            if (!$user_id_or_email) {
+                return array(
+                    'error' => _e('You must provide email address', true),
+                    'form_data_required' => 'email'
+                );
+
+            } else {
+
+                $check_term = $this->app->user_manager->terms_check($terms_and_conditions_name, $user_id_or_email);
+
+                if (!$check_term) {
+                    if (isset($params['terms']) and $params['terms']) {
+                        $this->app->user_manager->terms_accept($terms_and_conditions_name, $user_id_or_email);
+                    } else {
+                        return array(
+                            'error' => _e('You must agree to The Terms and Conditions', true),
+                            'form_data_required' => 'terms',
+                            'form_data_module' => 'users/terms'
+                        );
+                    }
+                }
+            }
+        }
+
+
+        // ezyweb added newsletter subscription
+        if ($newsletter_subscription and isset($params['newsletter_subscribe']) and $params['newsletter_subscribe']) {
+
+            if ($user_require_terms and $user_id_or_email) {
+
+                // terms_contact already logged now log terms_newsletter using the same authorisation
+                $check_term = $this->app->user_manager->terms_check('terms_newsletter', $user_id_or_email);
+
+                if (!$check_term) {
+                    if (isset($params['terms']) and $params['terms']) {
+                        $this->app->user_manager->terms_accept('terms_newsletter', $user_id_or_email);
+                    } else {
+                        return array(
+                            'error' => _e('You must agree to The Terms and Conditions', true),
+                            'form_data_required' => 'terms',
+                            'form_data_module' => 'users/terms'
+                        );
+                    }
+                }
+            }
+
+            if ($user_id_or_email) {
+
+                if (is_numeric($user_id_or_email)) {
+                    $user = $this->app->user_manager->get_by_id($user_id_or_email);
+                    $email = $user['email'];
+                } else {
+                    $email = $user_id_or_email;
+                }
+
+                $subscriber_data = [
+                    'email' => $email,
+                    'confirmation_code' => str_random(30),
+                    'is_subscribed' => 1
+                ];
+                $name = false;
+
+                foreach ($params as $param_k => $param_v) {
+                    if (!$name and is_string($param_v) and is_string($param_k)) {
+                        if(stristr($param_k,'name')){
+                            $name = $param_v;
+                        }
+                    }
+                }
+                if($name){
+                    $subscriber_data['name'] = $name;
+                }
+                $this->app->database_manager->save('newsletter_subscribers', $subscriber_data);
+            }
+        }
+
+
+
+
+
         // if ($for=='module'){
         $list_id = $this->app->option_manager->get('list_id', $for_id);
         //  }
@@ -360,35 +431,36 @@ class FormsManager
         } else {
             $cf_to_save = $params;
         }
-
+        $save = 1;
 
         $skip_saving_emails = $this->app->option_manager->get('skip_saving_emails', $for_id);
         if (!$skip_saving_emails) {
-        	$skip_saving_emails = $this->app->option_manager->get('skip_saving_emails', $default_mod_id);
+            $skip_saving_emails = $this->app->option_manager->get('skip_saving_emails', $default_mod_id);
+            $skip_saving_emails = $this->app->option_manager->get('skip_saving_emails', $default_mod_id);
         }
         if ($skip_saving_emails !== 'y') {
 
-	        $to_save['list_id'] = $list_id;
-	        $to_save['rel_id'] = $for_id;
-	        $to_save['rel_type'] = $for;
+            $to_save['list_id'] = $list_id;
+            $to_save['rel_id'] = $for_id;
+            $to_save['rel_type'] = $for;
 
-	        $to_save['user_ip'] = MW_USER_IP;
+            $to_save['user_ip'] = MW_USER_IP;
 
-	        if (isset($params['module_name'])) {
-	            $to_save['module_name'] = $params['module_name'];
-	        }
+            if (isset($params['module_name'])) {
+                $to_save['module_name'] = $params['module_name'];
+            }
 
-	        if (!empty($fields_data)) {
-	            $to_save['form_values'] = json_encode($fields_data);
-	        } else {
-	            $to_save['form_values'] = json_encode($params);
-	        }
+            if (!empty($fields_data)) {
+                $to_save['form_values'] = json_encode($fields_data);
+            } else {
+                $to_save['form_values'] = json_encode($params);
+            }
 
-	        $save = $this->app->database_manager->save($table, $to_save);
-	        $event_params = $params;
-	        $event_params['saved_form_entry_id'] = $save;
+            $save = $this->app->database_manager->save($table, $to_save);
+            $event_params = $params;
+            $event_params['saved_form_entry_id'] = $save;
 
-	        $this->app->event_manager->trigger('mw.forms_manager.after_post', $event_params);
+            $this->app->event_manager->trigger('mw.forms_manager.after_post', $event_params);
 
         }
 
@@ -423,7 +495,7 @@ class FormsManager
                 unset($pp_arr['message']);
                 $pp_arr['message'] = $temp; // push to end of array
             }
-
+            $user_mails = array();
 
             $notif = array();
             $notif['module'] = $params['module_name'];
@@ -437,7 +509,10 @@ class FormsManager
             if ($email_to == false) {
                 $email_to = $this->app->option_manager->get('email_from', 'email');
             }
+
+
             $admin_user_mails = array();
+
             if ($email_to == false) {
                 $admins = $this->app->user_manager->get_all('is_admin=1');
                 if (is_array($admins) and !empty($admins)) {
@@ -445,10 +520,22 @@ class FormsManager
                         if (isset($admin['email']) and (filter_var($admin['email'], FILTER_VALIDATE_EMAIL))) {
                             $admin_user_mails[] = $admin['email'];
                             $email_to = $admin['email'];
+                            $user_mails[] = $admin['email'];
                         }
                     }
                 }
+
             }
+
+            if (is_array($params) and !empty($params)) {
+                foreach ($params as $param) {
+                     if (is_string($param) and (filter_var($param, FILTER_VALIDATE_EMAIL))) {
+                        $user_mails[] = $param;
+                    }
+                }
+
+            }
+
 
             if ($email_to != false) {
                 $mail_autoresp = 'Thank you for your request!';
@@ -467,17 +554,15 @@ class FormsManager
                 }
 
 
-                $user_mails = array();
-                if (isset($admin_user_mails) and !empty($admin_user_mails)) {
-                    $user_mails = $admin_user_mails;
-                }
-
                 $user_mails[] = $email_to;
                 if (isset($email_bcc) and (filter_var($email_bcc, FILTER_VALIDATE_EMAIL))) {
                     $user_mails[] = $email_bcc;
                 }
 
-                $email_from = false;
+
+
+
+                // $email_from = false;
                 if (!$email_from and isset($cf_to_save) and !empty($cf_to_save)) {
                     foreach ($cf_to_save as $value) {
                         if (is_array($value) and isset($value['value'])) {
@@ -494,7 +579,7 @@ class FormsManager
                 }
 
 
-                $from_name = $email_from;
+               //  $from_name = $email_from;
                 if (isset($params['name']) and $params['name']) {
                     $from_name = $params['name'];
                 }
@@ -507,13 +592,14 @@ class FormsManager
 
                     $append_files = $this->app->option_manager->get('append_files', $for_id);
                     if (!$append_files) {
-                    	$append_files = $this->app->option_manager->get('append_files', $default_mod_id);
+                        $append_files = $this->app->option_manager->get('append_files', $default_mod_id);
                     }
 
                     $append_files_ready = array();
                     if (!empty($append_files)) {
-                    	$append_files_ready = explode(",", $append_files);
+                        $append_files_ready = explode(",", $append_files);
                     }
+                  //  var_dump($user_mails);
 
                     $email_autorespond = $this->app->option_manager->get('email_autorespond', $for_id);
 
@@ -542,43 +628,43 @@ class FormsManager
 
 
         if (!isset($email_from)) {
-        	if (isset($params['email']) and (filter_var($params['email'], FILTER_VALIDATE_EMAIL))) {
-        		$email_from = $params['email'];
-        	}
-        	if (!isset($email_from) || !$email_from) {
-        		foreach($params as $pKey=>$pValue) {
-        			if (isset($params[$pKey]) && is_string($params[$pKey]) && (filter_var($params[$pKey], FILTER_VALIDATE_EMAIL))) {
-        				$email_from = $params[$pKey];
-        			}
-        		}
-        	}
+            if (isset($params['email']) and (filter_var($params['email'], FILTER_VALIDATE_EMAIL))) {
+                $email_from = $params['email'];
+            }
+            if (!isset($email_from) || !$email_from) {
+                foreach ($params as $pKey => $pValue) {
+                    if (isset($params[$pKey]) && is_string($params[$pKey]) && (filter_var($params[$pKey], FILTER_VALIDATE_EMAIL))) {
+                        $email_from = $params[$pKey];
+                    }
+                }
+            }
         }
 
         if (isset($email_from) && (filter_var($email_from, FILTER_VALIDATE_EMAIL))) {
 
-        	if (isset($from_name)) {
-        		$params['name'] = $from_name;
-        	}
+            if (isset($from_name)) {
+                $params['name'] = $from_name;
+            }
 
-        	$params['email'] = $email_from;
-        	$params['list_id'] = $list_id;
-        	$params['option_group'] = 'contact_form';
+            $params['email'] = $email_from;
+            $params['list_id'] = $list_id;
+            $params['option_group'] = 'contact_form';
 
-        	$params['rel_id'] = $for_id;
-        	$params['rel_type'] = $for;
+            $params['rel_id'] = $for_id;
+            $params['rel_type'] = $for;
 
-        	event_trigger('mw.mail_subscribe', $params);
+            event_trigger('mw.mail_subscribe', $params);
 
         }
 
         $success = array();
         $success['id'] = $save;
         $success['success'] = _e('Your message has been sent', true);
-        
+
         if ($email_redirect_after_submit) {
             $success['redirect'] = $email_redirect_after_submit;
         }
-        
+
         return $success;
 
     }
@@ -747,7 +833,7 @@ class FormsManager
                         $output_val = $v1;
 
                         if (is_array($output_val)) {
-                        	$output_val = mw()->format->array_to_seperator($output_val);
+                            $output_val = mw()->format->array_to_seperator($output_val);
                         }
                         $item_for_csv[$k1] = $output_val;
 

@@ -1,13 +1,23 @@
 <?php
 $template = get_option('data-template', $params['id']);
 
+$defaultUsername = 'bummer.frenchie.wild';
+
 $username = get_option('username', $params['id']);
-if (!isset($username) or $username == false or $username == '') {
-    $username = 'bummer.frenchie.wild';
+if ($username) {
+    $username = $username;
+} elseif (isset($params['data-instagram'])) {
+    $username = $params['data-instagram'];
+} else {
+    $username = $defaultUsername;
 }
 
 $number_of_items = get_option('number_of_items', $params['id']);
-if (!isset($number_of_items) or $number_of_items == false or $number_of_items == '') {
+if ($number_of_items) {
+    $number_of_items = $number_of_items;
+} elseif (isset($params['data-items'])) {
+    $number_of_items = $params['data-items'];
+} else {
     $number_of_items = 3;
 }
 
@@ -21,9 +31,31 @@ if ($template != false) {
 
 }
 
-$html = mw()->http->url('https://instagram.com/' . $username . '/')->set_cache(1800)->get();
-preg_match('/_sharedData = ({.*);<\/script>/', $html, $matches);
-$profile_data = json_decode($matches[1])->entry_data->ProfilePage[0]->graphql->user;
+try {
+    $html = mw()->http->url('https://instagram.com/' . $username . '/')->set_cache(1800)->get();
+    preg_match('/_sharedData = ({.*);<\/script>/', $html, $matches);
+
+} catch (Exception $e) {
+    echo 'Caught exception: ', $e->getMessage(), "\n";
+    return;
+}
+if (!($matches)) {
+    print lnotif("Click here to edit Instagram feed");
+    return;
+}
+
+
+if (!isset($matches[1])) {
+    print lnotif("Click here to edit Instagram feed");
+    return;
+}
+
+$profile_data = json_decode($matches[1]);
+if (!isset($profile_data->entry_data) or !isset($profile_data->entry_data->ProfilePage)) {
+    print _e("Profile not found");
+    return;
+}
+$profile_data = $profile_data->entry_data->ProfilePage[0]->graphql->user;
 $profile_data = json_encode($profile_data);
 $profile_data = json_decode($profile_data, true);
 

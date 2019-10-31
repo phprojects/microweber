@@ -14,6 +14,7 @@
 
 #mw-text-editor {
     width: 100%;
+    display: flex;
     min-height: 35px;
     background: #F5F5F5;
     z-index: 996;
@@ -36,14 +37,7 @@
     z-index: 99;
 }
 
-#mw-text-editor:after {
-    content: ".";
-    display: block;
-    clear: both;
-    visibility: hidden;
-    line-height: 0;
-    height: 0;
-}
+
 
 #mw-admin-text-editor {
     width: 100%;
@@ -286,6 +280,23 @@
     cursor: pointer;
 
 }
+.mw-dropdown-type-wysiwyg.disabled{
+    opacity: 0.45;
+    pointer-events: none;
+}
+.mw-active-element-is-in-safe-mode .mw_editor_element,
+.mw-active-element-is-in-safe-mode .mw_editor_outdent,
+.mw-active-element-is-in-safe-mode .mw_editor_indent,
+.mw-active-element-is-in-safe-mode .mw_editor_ol ,
+.mw-active-element-is-in-safe-mode .mw_editor_ul ,
+.mw-active-element-is-in-safe-mode #wysiwyg_insert li[value='insert_html'],
+.mw-active-element-is-in-safe-mode #wysiwyg_insert li[value='quote'],
+.mw-active-element-is-in-safe-mode #wysiwyg_insert li[value='code'],
+.mw-active-element-is-in-safe-mode #wysiwyg_insert li[value='pre'],
+.mw-active-element-is-in-safe-mode #format_main{
+    opacity: 0.45;
+    pointer-events: none;
+}
 
 .mw-dropdown-type-wysiwyg .mw-dropdown-value{
     display: inline-block;
@@ -358,12 +369,21 @@
 
 .mw-dropdown-type-wysiwyg .mw-dropdown-val {
     display: inline-block;
-    padding: 4px 7px;
+    padding: 4px 17px 4px 7px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 95%;
 }
 
+.mw-dropdown-type-wysiwyg .mw-dropdown-val:after {
+    content: "\0118";
+    display: inline-block;
+    font-family: Microweber !important;
+    text-transform: none !important;
+    position: absolute;
+    top: 7px;
+    right: 5px;
+    color: #7b7b7b;
+    font-size: 11px;
+}
 .mw-dropdown-type-wysiwyg .mw-dropdown-val * {
     font-size: 11px !important;
     padding: 0 !important;
@@ -505,10 +525,6 @@
     display: inline-block;
 }
 
-#history_dd {
-    position: relative;
-}
-
 #mw-history-panel {
     left: -22px;
     width: 150px;
@@ -532,19 +548,19 @@
 }
 
 .wysiwyg-table {
-    display: table;
+    display: flex;
     padding: 15px 0;
     position: relative;
     left: 0;
 }
 
 .wysiwyg-table > .wysiwyg-cell {
-    display: table-cell;
+    display: flex;
     vertical-align: middle;
     float: none;
     white-space: nowrap;
-    padding: 0 6px;
     background: url(../img/mw_dlm.png) no-repeat right center;
+    padding: 0 8px 0 2px;
 }
 
 .wysiwyg-table > .wysiwyg-cell:first-child {
@@ -821,9 +837,13 @@
     padding: 10px;
     border: 1px solid #DADADA;
     overflow: auto;
-    height: 400px;
+    height: 160px;
     margin-bottom: 15px;
 }
 
 /* /Icons */
+
+.module-modal-content{
+    position: relative;
+}
 

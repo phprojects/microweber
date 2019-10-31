@@ -5,7 +5,7 @@
 <link type="text/css" rel="stylesheet" media="all" href="<?php print mw_includes_url(); ?>css/wysiwyg.css"/>
 <script src="<?php print mw_includes_url(); ?>api/jquery-ui.js"></script>
 <script>
-    mwAdmin = true; 
+    mwAdmin = true;
 
 </script>
 <script>
@@ -56,7 +56,7 @@ GalleriesRemote = function(){
               }
         }
     }
- 
+
 
 
 
@@ -260,7 +260,7 @@ body {
     line-height: 1.85;
     /*border: 1px solid #dfdfdf;*/
     padding: 10px;
-    min-height: 200px;
+    min-height: 300px;
 
 }
 
@@ -326,10 +326,10 @@ img{
 
     <script>
         mw.lib.require('material_icons')
-        mw.require('liveedit.js')
-        mw.require('columns.js')
-        mw.require('plus.js')
-        mw.require('columns.js')
+        mw.require("<?php print mw()->template->get_liveeditjs_url()  ?>");
+        mw.require('columns.js');
+        mw.require('plus.js');
+        mw.require('columns.js');
     </script>
 
 
@@ -352,11 +352,11 @@ img{
 
 
     $(document).ready(function(){
-		
-		
+
+
 
         $("#the_admin_editor .edit").each(function(){ mw.wysiwyg.contentEditable(this, true) });
-		
+
         $(mwd).on('mousedown', function(e){
             if(!e.target.isContentEditable){
                 var target = null;
@@ -382,7 +382,7 @@ img{
     //exit('Must be admin');
   }
  ?>
- 
+
 
 <div class="mw-admin-editor <?php print $mainclass; ?>" id="the_admin_editor">
  <?php include mw_includes_path() . DS . 'toolbar' . DS ."wysiwyg_admin.php"; ?>
@@ -392,13 +392,13 @@ img{
 
 <?php mw_var('plain_modules', false); ?>
 
-<span class="mw-plus-top">+</span>
-<span class="mw-plus-bottom">+</span>
+<span class="mw-plus-top"></span>
+<span class="mw-plus-bottom"></span>
 <div style="display: none" id="plus-modules-list">
 <input type="text" class="mw-ui-searchfield" />
     <div class="mw-ui-btn-nav mw-ui-btn-nav-tabs pull-left">
         <span class="mw-ui-btn mw-ui-btn-medium active"><i class="mw-icon-module"></i> <?php _e("Modules"); ?></span>
-        <span class="mw-ui-btn mw-ui-btn-medium"><i class="mw-icon-template"></i> <?php _e("Layouts"); ?></span>
+        <!-- <span class="mw-ui-btn mw-ui-btn-medium"><i class="mw-icon-template"></i> <?php _e("Layouts"); ?></span> -->
     </div>
 
     <div class="mw-ui-box">

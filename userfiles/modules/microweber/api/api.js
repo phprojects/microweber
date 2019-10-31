@@ -204,28 +204,29 @@ mw.askusertostay = false;
     if(typeof inHead === 'boolean' || typeof inHead === 'undefined'){
         inHead = inHead || false;
     }
+    var keyString;
     if(typeof inHead === 'string'){
-        var keyString = ''+inHead;
+        keyString = ''+inHead;
         inHead = key || false;
     }
     if(typeof key === 'string'){
-        var keyString = key;
+        keyString = key;
     }
     var toPush = url, urlModified = false;
-    if(!!keyString){
+    if (!!keyString) {
         toPush = keyString;
         urlModified = true
     }
     var t = url.split('.').pop();
-    var url = url.contains('//') ? url : (t !== "css" ? "<?php print( mw_includes_url() ); ?>api/" + url  :  "<?php print( mw_includes_url() ); ?>css/" + url);
+    url = url.contains('//') ? url : (t !== "css" ? "<?php print( mw_includes_url() ); ?>api/" + url  :  "<?php print( mw_includes_url() ); ?>css/" + url);
     if(!urlModified) toPush = url;
     if (!~mw.required.indexOf(toPush)) {
       mw.required.push(toPush);
-      var url = url.contains("?") ?  url + '&mwv=' + mw.version : url + "?mwv=" + mw.version;
+      url = url.contains("?") ?  url + '&mwv=' + mw.version : url + "?mwv=" + mw.version;
       if(document.querySelector('link[href="'+url+'"],script[src="'+url+'"]') !== null){
           return
       }
-      var string = t != "css" ? "<script type='text/javascript'  src='" + url + "'></script>" : "<link rel='stylesheet' type='text/css' href='" + url + "' />";
+      var string = t !== "css" ? "<script type='text/javascript'  src='" + url + "'></script>" : "<link rel='stylesheet' type='text/css' href='" + url + "' />";
       if ((mwd.readyState === 'loading'/* || mwd.readyState === 'interactive'*/) && !inHead && !!window.CanvasRenderingContext2D && self === parent) {
          mwd.write(string);
       }
@@ -234,14 +235,15 @@ mw.askusertostay = false;
               $(mwhead).append(string);
           }
           else{
+              var el;
               if( t !== "css")  {
-                  var el = mwd.createElement('script');
+                  el = mwd.createElement('script');
                   el.src = url;
                   el.setAttribute('type', 'text/javascript');
                   mwhead.appendChild(el);
               }
               else{
-                 var el = mwd.createElement('link');
+                 el = mwd.createElement('link');
                  el.rel='stylesheet';
                  el.type='text/css';
                  el.href = url;
@@ -250,7 +252,7 @@ mw.askusertostay = false;
           }
       }
     }
-  }
+  };
 
 
 
@@ -281,10 +283,10 @@ mw.getScripts = function (array, callback) {
       el.href = url;
       mwhead.insertBefore(el, mwhead.firstChild);
     }
-  }
+  };
   mw.moduleJS = mw.module_js = function(url){
     mw.require(url, true);
-  }
+  };
 
 
 
@@ -914,6 +916,16 @@ mw.user = {
     });
   }
 };
+
+mw.parent = function(){
+    if(window === top){
+        return window.mw;
+    }
+    if(mw.tools.canAccessWindow(parent) && parent.mw){
+        return parent.mw;
+    }
+    return window.mw;
+};
 mw.top = function(){
   var getLastParent = function() {
       var curr = window.parent;
@@ -921,7 +933,7 @@ mw.top = function(){
           parents.push(curr);
           curr = curr.parent;
       }
-      return curr;
+      return curr.mw;
   };
   if(window === top){
     return window.mw;
@@ -944,6 +956,8 @@ mw.top = function(){
 
 mw.required.push("<?php print mw_includes_url(); ?>api/jquery.js");
 
+
+mw.required.push("<?php print mw_includes_url(); ?>api/libs/acolorpicker/acolorpicker.js");
 mw.required.push("<?php print mw_includes_url(); ?>api/color.js");
 
 mw.required.push("<?php print mw_includes_url(); ?>api/tools.js");
@@ -971,6 +985,7 @@ mw.required.push("<?php print mw_includes_url(); ?>api/components.js");
 mw.required.push("<?php print mw_includes_url(); ?>api/dialog.js");
 mw.required.push("<?php print mw_includes_url(); ?>api/instruments.js");
 
+mw.required.push("<?php print mw_includes_url(); ?>api/content.js");
 
 
 
@@ -978,6 +993,8 @@ mw.required.push("<?php print mw_includes_url(); ?>api/instruments.js");
 
 
 <?php  include  __DIR__.DS."color.js"; ?>
+
+<?php  include  __DIR__.DS."libs/acolorpicker/acolorpicker.js"; ?>
 
 
 <?php  include __DIR__.DS."tools.js"; ?>
@@ -1014,6 +1031,8 @@ mw.required.push("<?php print mw_includes_url(); ?>api/instruments.js");
 
 <?php  include __DIR__.DS."instruments.js"; ?>
 
+<?php  include __DIR__.DS."content.js"; ?>
+
 
 
 
@@ -1037,4 +1056,62 @@ $(window).on('load', function(){
 <?php  //include "upgrades.js"; ?>
 
 <?php  include  __DIR__.DS."session.js"; ?>
+
+
+
+/*
+    options.data = [
+        {
+            title: string,
+            value: any,
+            icon?: string,
+            selected?: boolean
+        }
+    ]
+
+ */
+
+mw.Select = function(options) {
+    var defaults = {
+        data: [],
+        skin: 'default'
+    };
+    options  = options || {};
+    this.settings = $.extend({}, defaults, options);
+    var scope = this;
+
+    this.rendOption = function(item){
+        var oh = document.createElement('div');
+        oh.$value = item.value;
+        oh.$data = item;
+        oh.className = 'mw-select-option';
+        oh.onclick = function () {
+            scope.setValue(oh.$value)
+        };
+        return oh;
+    };
+
+    this.rendValueholder = function(item){
+        var oh = document.createElement('div');
+        oh.className = 'mw-select-value';
+        oh.onclick = function () {
+            scope.setValue(oh.$value)
+        };
+        return oh;
+    };
+
+    this.setValue = function(val){
+        if(!val) return;
+    };
+
+    this.rendOptions = function(){
+        var oh = document.createElement('div');
+        oh.className = 'mw-select';
+        $.each(this.settings.data, function(){
+            oh.appendChild(this.rendOption(this))
+        });
+        return oh;
+    }
+
+};
 

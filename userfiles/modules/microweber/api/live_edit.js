@@ -68,11 +68,7 @@ mw.live_edit.showSettings = function (a, opts) {
         return;
     }
     var attributes = {};
-    if (curr && curr.id && mw.$('#module-settings-' + curr.id).length > 0) {
-        var m = mw.$('#module-settings-' + curr.id)[0];
-        m.scrollIntoView();
-        mw.tools.highlight(m);
-    }
+
     if (curr && curr.attributes) {
         $.each(curr.attributes, function (index, attr) {
             attributes[attr.name] = attr.value;
@@ -136,31 +132,26 @@ mw.live_edit.showSettings = function (a, opts) {
         if(mw.liveEditSettings && mw.liveEditSettings.active){
              mw.liveEditSettings.hide();
         }
-
+        var has = mw.$('#' + modal_name);
+        if(has.length){
+            var dialog = mw.dialog.get(has[0]);
+            dialog.show();
+            return dialog;
+        }
         var nmodal = mw.dialogIframe({
             url: src,
             width: 532,
+            height: 'auto',
             autoHeight:true,
             id: modal_name,
             title:'',
-            className: 'mw-dialog-module-settings'
+            className: 'mw-dialog-module-settings',
+            closeButtonAction: 'hide'
         });
 
         nmodal.iframe.contentWindow.thismodal = nmodal;
         return nmodal;
 
-        var modal = top.mw.tools.modal.frame({
-            url: src,
-            width: 532,
-            height: 150,
-            name: modal_name,
-            title: '',
-            callback: function () {
-                $(this.container).attr('data-settings-for-module', curr.id);
-            }
-        });
-        mw.live_edit.getModuleTitleBar(module_type, curr.id);
-        return modal;
     } else {
 
 
@@ -168,7 +159,7 @@ mw.live_edit.showSettings = function (a, opts) {
             mw.liveEditSettings.show();
         }
 
-        if(typeof(mw.sidebarSettingsTabs) != 'undefined'){
+        if(mw.sidebarSettingsTabs){
             mw.sidebarSettingsTabs.set(2);
         }
 

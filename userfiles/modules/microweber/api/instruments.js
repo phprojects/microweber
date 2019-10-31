@@ -1,3 +1,13 @@
+mw._instrument = function(){
+    this._value = null;
+    var $scope = $(this);
+    this.value = function(val){
+        if (!val) return this._value;
+        this._value = val;
+        $scope.trigger('change', [val]);
+        return this;
+    };
+};
 mw.instruments = {
     _create:function (config) {
         config = config || {};
@@ -23,7 +33,7 @@ mw.instruments = {
             return;
         }
         config.show = typeof config.show === 'undefined' ? true : config.show;
-        config.width = config.width || 600;
+        config.width = config.width || 660;
         if(!this._run[config.id]){
             var inst = this[config.instrument]({
                 mode: 'inline'
@@ -90,11 +100,13 @@ mw.instruments = {
             frame = this._create({
                 url: 'link_editor'
             });
+            mw.tools.iframeAutoHeight(frame);
         } else if(settings.mode === 'dialog') {
           dialog = mw.dialogIframe({
               url:' link_editor',
               height: 'auto',
-              autoHeight: true
+              autoHeight: true,
+              width: 700
           });
           frame = dialog.iframe;
         } else {
