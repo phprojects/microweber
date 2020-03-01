@@ -63,10 +63,16 @@
         dialog.iframe = dialog.dialogContainer.querySelector('iframe');
         mw.tools.loading(dialog.dialogContainer, 90);
 
+
+
         setTimeout(function () {
             var frame = dialog.dialogContainer.querySelector('iframe');
+            frame.style.minHeight = 0; // reset in case of conflicts
             if (options.autoHeight) {
-                mw.tools.iframeAutoHeight(frame);
+                mw.tools.iframeAutoHeight(frame, {dialog: dialog});
+            } else{
+                $(frame).height(options.height - 60);
+                frame.style.position = 'relative';
             }
             mw.$(frame).on('load', function () {
                 mw.tools.loading(dialog.dialogContainer, false);
@@ -77,7 +83,9 @@
                     });
                     dialog.dialogMain.classList.remove('mw-dialog-iframe-loading');
                     frame.contentWindow.thismodal = dialog;
-                    mw.tools.iframeAutoHeight(frame, 'now');
+                    if (options.autoHeight) {
+                        mw.tools.iframeAutoHeight(frame, {dialog: dialog});
+                    }
                 }, 78);
                 if (mw.tools.canAccessIFrame(frame)) {
                     mw.$(frame.contentWindow.document).on('keydown', function (e) {
@@ -95,11 +103,11 @@
                     });
                 }
                 if(typeof options.onload === 'function') {
-                    options.onload.call(dialog)
+                    options.onload.call(dialog);
                 }
             });
         }, 12);
-        return dialog
+        return dialog;
     };
 
     mw.dialog.get = function (selector) {
@@ -366,6 +374,9 @@
         };
 
         this.show = function () {
+            mw.$(this.dialogMain).find('iframe').each(function(){
+                this._intPause = false;
+            });
             mw.$(this.dialogMain).addClass('active');
             this.center();
             this._afterSize();
@@ -378,9 +389,12 @@
         this.hide = function () {
             if (!this._hideStart) {
                 this._hideStart = true;
+                mw.$(this.dialogMain).find('iframe').each(function(){
+                    this._intPause = true;
+                });
                 setTimeout(function () {
                     scope._hideStart = false;
-                }, 300)
+                }, 300);
                 mw.$(this.dialogMain).removeClass('active');
                 if(mw._iframeDetector) {
                     mw._iframeDetector.pause = false;
@@ -423,11 +437,15 @@
             } else if (this.options.centerMode === 'center') {
                 dtop = $window.height() / 2 - holderHeight / 2;
             }
-            if (width) {
-                scope._dragged = false;
-            }
+
             if (!scope._dragged) {
                 css.left = $window.outerWidth() / 2 - holderWidth / 2;
+            } else {
+                css.left = parseFloat($holder.css('left'));
+            }
+
+            if(css.left + holderWidth > $window.width()){
+                css.left = css.left - ((css.left + holderWidth) - $window.width());
             }
 
             if (dtop) {
@@ -480,11 +498,11 @@
             if (typeof height !== 'undefined') {
                 this.height(height);
             }
-            this.center(width, height)
+            this.center(width, height);
         };
         this.content = function (content) {
             this.options.content = content || '';
-            this.dialogContainer.innerHTML = this.options.content;
+            $(this.dialogContainer).empty().append(this.options.content);
             return this;
         };
 
@@ -548,5 +566,37 @@
 
 
 })(window.mw);
+
+
+(function () {
+    function scoped() {
+        var all = document.querySelectorAll('style[scoped]'), i = 0;
+
+        try {
+            for( ; i < all.length; i++ ) {
+                var parent = all[i].parentNode;
+                parent.id = parent.id || mw.id('scoped-id-');
+                var prefix = '#' + parent.id + ' ';
+                var rules = all[i].sheet.rules;
+                var r = 0;
+                for ( ; r < rules.length; r++) {
+                    var newRule = prefix + rules[r].cssText;
+                    all[i].sheet.deleteRule(r);
+                    all[i].sheet.insertRule(newRule, r);
+                }
+                all[i].removeAttribute('scoped');
+            }
+        }
+        catch(error) {
+
+        }
+
+
+    }
+    scoped();
+    $(window).on('load', function () {
+        scoped();
+    });
+})();
 
 

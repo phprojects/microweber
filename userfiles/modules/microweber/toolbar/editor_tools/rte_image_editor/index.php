@@ -5,7 +5,6 @@
     mw.require("events.js");
     mw.require("forms.js");
     mw.require("files.js");
-    mw.require("tools.js");
     mw.require("url.js");
 </script>
 
@@ -50,7 +49,6 @@ if (array_key_exists('types', $_GET)) {
 
         if (url == false) {
             if (eventType == 'done') {
-                /* parent.mw.iframecallbacks[hash](url, eventType); */
             }
             if (window.thismodal) {
                 thismodal.remove();
@@ -79,7 +77,10 @@ if (array_key_exists('types', $_GET)) {
                     if (typeof parent[hash] === 'function') {
                         parent[hash](url, eventType);
                     } else {
-                        parent.mw.iframecallbacks['insert_image'](url, eventType);
+                        if(parent.mw.iframecallbacks['insert_image']) {
+                            parent.mw.iframecallbacks['insert_image'](url, eventType);
+                        }
+
                     }
                 }
             } else {
@@ -152,7 +153,7 @@ if (array_key_exists('types', $_GET)) {
 
             parent.mw.tools.modal.remove('mw_rte_image');
 
-            mw.notification.success('<?php _e('The image is changed') ?>');
+            mw.notification.success('<?php _ejs('The image is changed') ?>');
 
 
         });

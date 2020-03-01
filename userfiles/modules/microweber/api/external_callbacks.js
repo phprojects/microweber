@@ -12,7 +12,7 @@ mw.iframecallbacks = {
         var contains = false;
         var arr = ['mailto:', 'tel:', 'skype:', 'sms:', 'geopoint:', 'whatsapp:'],
             i = 0;
-        for( ; i < arr.length; i++){
+        for( ; i < arr.length; i++ ){
             if(url.indexOf(arr[i]) === 0){
                 contains = true;
             }
@@ -20,27 +20,28 @@ mw.iframecallbacks = {
         if (!contains && !!url) {
             //url = url.indexOf("http") === 0 ? url : (location.protocol + "//" + url);
         }
-        var target = target || '_self';
+        target = target || '_self';
 
-        var link_inner_text = false
+        var link_inner_text = false;
         if(link_content){
             link_inner_text = link_content;
         }
 
-        var sel = getSelection();
+        var sel, range, a;
+
+        sel = getSelection();
         if(!sel.rangeCount){
             return;
         }
 
-        var range = sel.getRangeAt(0);
+        range = sel.getRangeAt(0);
         var jqAction = url ? 'attr' : 'removeAttr';
-
 
         mw.wysiwyg.change(range.startContainer);
 
         if (!!mw.current_element && mw.current_element.nodeName === 'IMG') {
             if (mw.current_element.parentNode.nodeName !== 'A') {
-                var a = mwd.createElement('a');
+                a = mwd.createElement('a');
                 if(url){
                     a.href = url;
                 }
@@ -114,11 +115,11 @@ mw.iframecallbacks = {
         }
         else {
             if (!window.getSelection().isCollapsed) {
-                var a = mwd.createElement('a');
+                a = mwd.createElement('a');
                 a.href = url;
                 a.target = target;
-                var sel = window.getSelection();
-                var range = sel.getRangeAt(0);
+                sel = window.getSelection();
+                range = sel.getRangeAt(0);
                 try {
                     range.surroundContents(a);
                 }
@@ -128,11 +129,13 @@ mw.iframecallbacks = {
             }
             else {
 
-                var html = " <a "+ (url?href='" + url + "':'') +" target='" + target + "'>" + (link_inner_text?link_inner_text:url) + "</a> ";
+                var html = '<a href="' + url + '" target="' + target + '">' + (link_inner_text ? link_inner_text : url) + '</a>';
                 mw.wysiwyg.insert_html(html);
             }
         }
-
+        if(link_content && a) {
+            a.innerHTML = link_content
+        }
     },
 
     set_bg_image: function (url) {
@@ -153,26 +156,7 @@ mw.iframecallbacks = {
     change_shadow_color: function (color) {
         return mw.wysiwyg.change_shadow_color(color);
     },
-    ьeditimage: function (url) {
 
-
-        if(mw.image.currentResizing) {
-            if (mw.image.currentResizing[0].nodeName == 'IMG') {
-                mw.image.currentResizing.attr("src", url);
-                mw.image.currentResizing.css('height', 'auto');
-            }
-            else {
-                mw.image.currentResizing.css("backgroundImage", 'url(' + mw.files.safeFilename(url) + ')');
-                top.mw.wysiwyg.bgQuotesFix(parent.mw.image.currentResizing[0])
-            }
-
-            mw.wysiwyg.change(mw.image.currentResizing[0]);
-            parent.mw.image.currentResizing.load(function () {
-                parent.mw.image.resize.resizerSet(this);
-            });
-        }
-
-    },
     add_link_to_menu: function () {
 
     },

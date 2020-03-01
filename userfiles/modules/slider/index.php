@@ -98,19 +98,18 @@ if (is_file($template_file)) {
     <script>
         $(document).ready(function () {
             $('.bxSlider', '#<?php print $params['id'] ?>').bxSlider({
-                pager: <?php print $pager; ?>,
-                controls: <?php print $controls; ?>,
-                infiniteLoop: <?php print $loop; ?>,
-                adaptiveHeight: <?php print $adaptiveHeight; ?>,
-                speed: '<?php print $speed; ?>',
-                auto: '<?php print $autoplay; ?>',
-
-                hideControlOnEnd:  <?php print $hideControlOnEnd; ?>,
-                mode: '<?php print $mode; ?>',
-                prevText: '<?php print $prevText; ?>',
-                nextText: '<?php print $nextText; ?>',
-                prevSelector: '<?php print $prevSelector; ?>',
-                nextSelector: '<?php print $nextSelector; ?>',
+                pager: <?php print $pager ? $pager : 'undefined'; ?>,
+                controls: <?php print $controls ? $controls : 'undefined'; ?>,
+                infiniteLoop: <?php print $loop ? $loop : 'undefined'; ?>,
+                adaptiveHeight: <?php print $adaptiveHeight ? $adaptiveHeight : 'undefined'; ?>,
+                auto: '<?php print $autoplay ? $autoplay : 'undefined'; ?>',
+                autoHover: '<?php print $pauseOnHover ? $pauseOnHover : 'undefined'; ?>',
+                pause: '<?php print $autoplaySpeed ? $autoplaySpeed : '3000'; ?>',
+                hideControlOnEnd:  <?php print $hideControlOnEnd ? $hideControlOnEnd : 'undefined'; ?>,
+                mode: '<?php print $mode ? $mode : 'undefined'; ?>',
+                prevText: '<?php print $prevText ? $prevText : 'undefined'; ?>',
+                nextText: '<?php print $nextText ? $nextText : 'undefined'; ?>',
+                touchEnabled: <?php print $touchEnabled ? $touchEnabled : 'undefined'; ?>,
                 captions: true,
                 onSliderLoad: function () {
                     mw.trigger("mw.bxslider.onSliderLoad");
@@ -133,7 +132,7 @@ if (is_file($template_file)) {
                 arrows: <?php print $controls; ?>,
                 infinite: <?php print $loop; ?>,
                 adaptiveHeight: <?php print $adaptiveHeight; ?>,
-                autoplaySpeed: <?php print $speed; ?>,
+                autoplaySpeed: <?php print $autoplaySpeed; ?>,
                 //speed: '<?php print $speed; ?>',
                 speed: 500,
 

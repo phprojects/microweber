@@ -267,6 +267,10 @@ class ShopManager
         }
         $ord_data = $this->get_orders('limit=50');
 
+        if (!$ord_data) {
+            return array('error' => 'No orders found.');
+        }
+
         if (is_array($ord_data[0])) {
             shuffle($ord_data);
             $ord_test = $ord_data[0];
@@ -406,6 +410,10 @@ class ShopManager
 
     public function currency_format($amount, $curr = false)
     {
+        if(is_array($amount)){
+            return;
+        }
+
         if ($curr == false) {
             $curr = $this->app->option_manager->get('currency', 'payments');
         }
@@ -447,37 +455,45 @@ class ShopManager
             $decimals = 2;
         }
 
+        switch ($curr) {
+            case 'EUR':
+                $curNumberFormat = number_format($amount, $decimals, ',', ' ');
+                break;
+
+            case 'GBP':
+            case 'BGN':
+            case 'RUB':
+                $curNumberFormat = number_format($amount, $decimals, '.', ' ');
+                break;
+
+            case 'BRL':
+                $curNumberFormat = number_format($amount, $decimals, ',', '.');
+                break;
+
+            default:
+                $curNumberFormat = number_format($amount, $decimals, '.', ',');
+                break;
+        }
+
         switch ($cur_pos) {
             case 'before':
-                $ret = $sym . ' ' . number_format($amount, $decimals, '.', ',');
+                $ret = $sym . ' ' . $curNumberFormat;
                 break;
             case 'after':
-                $ret = number_format($amount, $decimals, '.', ' ') . ' ' . $sym;
-
+                $ret = $curNumberFormat . ' ' . $sym;
                 break;
             case 'default':
             default:
                 switch ($curr) {
-                    case 'EUR':
-                        $ret = '&euro; ' . number_format($amount, $decimals, ',', ' ');
-                        break;
-                    case 'GBP':
-                        $ret = '&pound; ' . number_format($amount, $decimals, '.', ' ');
-                    break;
                     case 'BGN':
                     case 'RUB':
-                        $ret = number_format($amount, $decimals, '.', ' ') . ' ' . $sym;
-                        break;
-                    case 'US':
-                    case 'USD':
-                        $ret = '&#36; ' . number_format($amount, $decimals, '.', ',');
+                        $ret = $curNumberFormat . ' ' . $sym;
                         break;
                     default:
-                        $ret = $sym . ' ' . number_format($amount, $decimals, '.', ',');
+                        $ret = $sym . ' ' . $curNumberFormat;
                         break;
                 }
                 break;
-
         }
 
         return $ret;
@@ -497,15 +513,13 @@ class ShopManager
                         return $value;
                     } else {
                         $sym = $value[$key];
-
                         return $sym;
                     }
-                } else {
-                    return $curr;
-
                 }
             }
         }
+
+        return $curr;
     }
 
     public function currency_get()

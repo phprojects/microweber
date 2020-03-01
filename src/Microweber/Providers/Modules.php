@@ -683,7 +683,7 @@ $replace_paths = array();
 
         $module_name_l_theme = ACTIVE_TEMPLATE_DIR . 'modules' . DS . $module_name . DS . 'templates' . DS;
         $module_name_l_theme = normalize_path($module_name_l_theme, 1);
-
+//d(ACTIVE_TEMPLATE_DIR);
         $replace_paths[] = $module_name_l_theme;
         $replace_paths[] =         normalize_path(    'modules' . '/' . $module_name .'/' .'templates' . '/', 1);
 
@@ -780,15 +780,18 @@ $replace_paths = array();
                 if ($is_dot_php != false and $is_dot_php != 'php') {
                     $template_name = $template_name . '.php';
                 }
+
+
+
                 $tf_mw_default = $module_name_l . 'default.php';
-                $tf = $module_name_l . $template_name;
+                $tf = normalize_path($module_name_l . $template_name,false);
                 $tf_theme = $module_name_l_theme . $template_name;
                 $tf_from_other_theme = templates_path() . $template_name;
                 $tf_from_other_theme = normalize_path($tf_from_other_theme, false);
 
                 $tf_other_module = modules_path() . $template_name;
                 $tf_other_module = normalize_path($tf_other_module, false);
-                // ;
+
 
 
                 if ($template_name == 'mw_default.php' and is_file($tf)) {
@@ -917,6 +920,7 @@ $replace_paths = array();
         return $checked[$module_name];
     }
 
+
     public function is_installed($module_name)
     {
         $module_name = trim($module_name);
@@ -1019,17 +1023,19 @@ $replace_paths = array();
 
     public function uninstall($params)
     {
-        if ($this->app->user_manager->is_admin() == false) {
-            return false;
+        if (isset($params['for_module'])) {
+            $this_module = $this->get('ui=any&one=1&module=' . $params['for_module']);
+            if (isset($this_module['id'])) {
+                $params['id'] = $this_module['id'];
+            }
         }
+        
+
         if (isset($params['id'])) {
             $id = intval($params['id']);
             $this_module = $this->get('ui=any&one=1&id=' . $id);
             if ($this_module != false and is_array($this_module) and isset($this_module['id'])) {
                 $module_name = $this_module['module'];
-                if ($this->app->user_manager->is_admin() == false) {
-                    return false;
-                }
 
                 if (trim($module_name) == '') {
                     return false;
@@ -1059,19 +1065,22 @@ $replace_paths = array();
                     }
                 }
                 $to_save = array();
+                $this->_install_mode  = true;
                 $to_save['id'] = $id;
                 $to_save['installed'] = '0';
                 $this->save($to_save);
             }
         }
         $this->app->cache_manager->delete('modules' . DIRECTORY_SEPARATOR . '');
+        $this->app->cache_manager->clear();
+
+//
+//        $this_module = $this->get('ui=any&one=1&id=' . $id);
+//dd($this_module);
     }
 
     public function set_installed($params)
     {
-        if ($this->app->user_manager->is_admin() == false) {
-            return false;
-        }
 
         if (isset($params['for_module'])) {
             $this_module = $this->get('ui=any&one=1&module=' . $params['for_module']);
@@ -1115,6 +1124,7 @@ $replace_paths = array();
                 $to_save = array();
                 $to_save['id'] = $id;
                 $to_save['installed'] = 1;
+                $this->_install_mode  = true;
                 $this->save($to_save);
             }
         }

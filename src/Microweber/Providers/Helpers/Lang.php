@@ -1,4 +1,5 @@
 <?php
+
 namespace Microweber\Providers\Helpers;
 
 use \Microweber\Utils\URLify;
@@ -18,6 +19,8 @@ class Lang
 {
     /** @var \Microweber\Application */
     public $app;
+    public $is_enabled = null;
+    private $__default_lang_option = false;
 
 
     public function __construct($app = null)
@@ -27,6 +30,15 @@ class Lang
         } else {
             $this->app = mw();
         }
+
+
+        if(mw_is_installed()){
+            $this->is_enabled = true;
+        }
+
+        if($this->is_enabled) {
+            $this->__default_lang_option = get_option('language', 'website');
+        }
     }
 
 
@@ -35,6 +47,9 @@ class Lang
         $lang = str_replace('.', '', $lang);
         $lang = str_replace(DIRECTORY_SEPARATOR, '', $lang);
         $lang = filter_var($lang, FILTER_SANITIZE_STRING, FILTER_FLAG_STRIP_LOW);
+
+        mw()->option_manager->clear_memory();
+
         return $this->app->setLocale($lang);
     }
 
@@ -61,6 +76,13 @@ class Lang
         return $app_locale;
     }
 
+
+    function default_lang()
+    {
+        if($this->is_enabled){
+        return get_option('language', 'website');
+        }
+    }
 
     function __store_lang_file_ns($lang = false)
     {
@@ -259,7 +281,6 @@ class Lang
      */
     function e($k, $to_return = false)
     {
-
         $string = $this->lang($k);
 
         if ($to_return == true) {
@@ -268,12 +289,27 @@ class Lang
         echo $string;
 
         return;
-
     }
 
+    function ejs($k, $to_return = false)
+    {
+        $string = $this->lang($k);
+        $string = htmlspecialchars($string, ENT_QUOTES);
+
+        if ($to_return == true) {
+            return $string;
+        }
+        echo $string;
+
+        return;
+    }
 
     private function __make_lang_key_suffix($str)
     {
+       if(function_exists('iconv')){
+           $str = $this->__convert_to_utf($str);
+       }
+
         $hash = array();
         $all_words = explode(' ', $str);
         foreach ($all_words as $word) {
@@ -287,6 +323,23 @@ class Lang
         return implode('', $hash);
 
     }
+
+    private function __convert_to_utf($text)
+    {
+
+        $encoding = mb_detect_encoding($text, mb_detect_order(), false);
+
+        if ($encoding == "UTF-8") {
+            $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        }
+
+
+        $out = iconv(mb_detect_encoding($text, mb_detect_order(), false), "UTF-8//IGNORE", $text);
+
+
+        return $out;
+    }
+
 
     function lang($title, $namespace = false)
     {
@@ -323,6 +376,16 @@ class Lang
 
 
         if (isset($mw_language_content_file[$k1]) == false) {
+
+            $current_language = $this->current_lang();
+
+
+            $to_save = false;
+            if ( $this->__default_lang_option and $current_language ==  $this->__default_lang_option) {
+                $to_save = true;
+            }
+
+
             if (!$namespace) {
                 $k2 = ($title_value);
                 $mw_new_language_entries[$k1] = $k2;
@@ -332,7 +395,7 @@ class Lang
                     define('MW_LANG_STORE_ON_EXIT_EVENT_BINDED', 1);
                     $scheduler = new \Microweber\Providers\Event();
                     // schedule a global scope function:
-                    if ($environment != 'testing') {
+                    if ($to_save and $environment != 'testing') {
                         $scheduler->registerShutdownEvent('__store_lang_file', $lang);
                     }
                     // $scheduler->registerShutdownEvent('__store_lang_file');
@@ -354,7 +417,7 @@ class Lang
                     if (!defined('MW_LANG_STORE_ON_EXIT_EVENT_BINDED_NS')) {
                         define('MW_LANG_STORE_ON_EXIT_EVENT_BINDED_NS', 1);
                         $scheduler = new \Microweber\Providers\Event();
-                        if ($environment != 'testing') {
+                        if ($to_save and $environment != 'testing') {
                             $scheduler->registerShutdownEvent('__store_lang_file_ns', $lang);
                         }
                     }
@@ -369,7 +432,6 @@ class Lang
             return $mw_language_content_file[$k1];
         }
     }
-
 
     /**
      * Gets all the language file contents.
@@ -399,16 +461,16 @@ class Lang
             foreach ($list as $l) {
                 $dir = dirname($l);
                 if ($dir and stristr($dir, $lang_files_dir) and is_dir($dir)) {
-                	$dir =  str_replace($lang_files_dir, '', $dir);
-                	$namespace = str_replace(' ', '', $dir);
-                	$namespace = str_replace('..', '', $namespace);
-                	$namespace = str_replace('\\', '/', $namespace);
-                	$ns[] = $namespace;
+                    $dir = str_replace($lang_files_dir, '', $dir);
+                    $namespace = str_replace(' ', '', $dir);
+                    $namespace = str_replace('..', '', $namespace);
+                    $namespace = str_replace('\\', '/', $namespace);
+                    $ns[] = $namespace;
 
                 }
             }
         }
-        if($ns){
+        if ($ns) {
             $ns = array_unique($ns);
         }
         return $ns;
@@ -422,7 +484,7 @@ class Lang
         if (isset($mw_language_content[$lang]) and !empty($mw_language_content[$lang])) {
             return $mw_language_content[$lang];
         }
-        if (!isset($mw_language_content[$lang])){
+        if (!isset($mw_language_content[$lang])) {
             $mw_language_content[$lang] = array();
         }
 
@@ -484,15 +546,9 @@ class Lang
         }
 
 
-
-        if (!isset($mw_language_content_namespace[$lang])){
+        if (!isset($mw_language_content_namespace[$lang])) {
             $mw_language_content_namespace[$lang] = array();
         }
-
-
-
-
-
 
 
 //    $lang_file = userfiles_path() . $namespace . DIRECTORY_SEPARATOR . 'language' . DIRECTORY_SEPARATOR . $lang . '.json';
@@ -583,18 +639,18 @@ class Lang
 
     function save_language_file_content($data)
     {
-    	// Decode json from post
-    	if (isset($data['lines']) && is_string($data['lines'])) {
-    		$jsonDecode = json_decode($data['lines'], true);
-    		if ($jsonDecode && is_array($jsonDecode)) {
-    			$readyData = array();
-    			foreach($jsonDecode as $dataExplode) {
-    				$readyData[$dataExplode['name']] = $dataExplode['value'];
-    			}
-    			$data = $readyData;
-    		}
-    	}
-    	
+        // Decode json from post
+        if (isset($data['lines']) && is_string($data['lines'])) {
+            $jsonDecode = json_decode($data['lines'], true);
+            if ($jsonDecode && is_array($jsonDecode)) {
+                $readyData = array();
+                foreach ($jsonDecode as $dataExplode) {
+                    $readyData[$dataExplode['name']] = $dataExplode['value'];
+                }
+                $data = $readyData;
+            }
+        }
+
         if (is_admin() == true) {
             if (isset($data['unicode_temp_remove'])) {
                 unset($data['unicode_temp_remove']);
@@ -611,10 +667,10 @@ class Lang
                 unset($data['___lang']);
             }
 
-            if(!$lang){
+            if (!$lang) {
                 $lang = current_lang();
             }
-            if(!$lang){
+            if (!$lang) {
                 return;
             }
             $lang = str_replace('.', '', $lang);
@@ -656,15 +712,15 @@ class Lang
     function get_all_lang_codes()
     {
         $langs = array(
-            'Abkhazian' => 'AB',
-            'Afar' => 'AA',
+          //  'Abkhazian' => 'AB',
+           // 'Afar' => 'AA',
             'Afrikaans' => 'AF',
-            'Albanian' => 'SQ',
+          //  'Albanian' => 'SQ',
             'Amharic' => 'AM',
             'Arabic' => 'AR',
-            'Armenian' => 'HY',
+            //'Armenian' => 'HY',
             'Assamese' => 'AS',
-            'Aymara' => 'AY',
+           // 'Aymara' => 'AY',
             'Azerbaijani' => 'AZ',
             'Bashkir' => 'BA',
             'Basque' => 'EU',
@@ -678,76 +734,77 @@ class Lang
             'Byelorussian' => 'BE',
             'Cambodian' => 'KM',
             'Catalan' => 'CA',
-            'Chinese' => 'ZH',
+          //  'Chinese' => 'ZH',
             'Corsican' => 'CO',
             'Croatian' => 'HR',
-            'Czech' => 'CS',
+            //'Czech' => 'CS',
             'Danish' => 'DA',
             'Dutch' => 'NL',
             'English, American' => 'EN',
-            'Esperanto' => 'EO',
+            'English, United Kingdom' => 'EN_UK',
+           // 'Esperanto' => 'EO',
             'Estonian' => 'ET',
             'Faeroese' => 'FO',
             'Fiji' => 'FJ',
             'Finnish' => 'FI',
             'French' => 'FR',
-            'Frisian' => 'FY',
+         //   'Frisian' => 'FY',
             'Gaelic (Scots Gaelic)' => 'GD',
             'Galician' => 'GL',
-            'Georgian' => 'KA',
+           // 'Georgian' => 'KA',
             'German' => 'DE',
             'Greek' => 'EL',
-            'Greenlandic' => 'KL',
+           // 'Greenlandic' => 'KL',
             'Guarani' => 'GN',
             'Gujarati' => 'GU',
-            'Hausa' => 'HA',
-            'Hebrew' => 'IW',
-            'Hindi' => 'HI',
+          //  'Hausa' => 'HA',
+          //  'Hebrew' => 'IW',
+          //  'Hindi' => 'HI',
             'Hungarian' => 'HU',
             'Icelandic' => 'IS',
             'Indonesian' => 'IN',
-            'Interlingua' => 'IA',
+          //  'Interlingua' => 'IA',
             'Interlingue' => 'IE',
-            'Inupiak' => 'IK',
+          //  'Inupiak' => 'IK',
             'Irish' => 'GA',
             'Italian' => 'IT',
-            'Japanese' => 'JA',
-            'Javanese' => 'JW',
+          // 'Japanese' => 'JA',
+           // 'Javanese' => 'JW',
             'Kannada' => 'KN',
-            'Kashmiri' => 'KS',
-            'Kazakh' => 'KK',
+           // 'Kashmiri' => 'KS',
+           // 'Kazakh' => 'KK',
             'Kinyarwanda' => 'RW',
             'Kirghiz' => 'KY',
-            'Kirundi' => 'RN',
-            'Korean' => 'KO',
-            'Kurdish' => 'KU',
-            'Laothian' => 'LO',
+           // 'Kirundi' => 'RN',
+           // 'Korean' => 'KO',
+           // 'Kurdish' => 'KU',
+           // 'Laothian' => 'LO',
             'Latin' => 'LA',
             'Latvian, Lettish' => 'LV',
-            'Lingala' => 'LN',
+            //'Lingala' => 'LN',
             'Lithuanian' => 'LT',
             'Macedonian' => 'MK',
             'Malagasy' => 'MG',
             'Malay' => 'MS',
             'Malayalam' => 'ML',
             'Maltese' => 'MT',
-            'Maori' => 'MI',
+        //    'Maori' => 'MI',
             'Marathi' => 'MR',
             'Moldavian' => 'MO',
             'Mongolian' => 'MN',
             'Nauru' => 'NA',
             'Nepali' => 'NE',
             'Norwegian' => 'NO',
-            'Occitan' => 'OC',
-            'Oriya' => 'OR',
+          //  'Occitan' => 'OC',
+           // 'Oriya' => 'OR',
             'Oromo, Afan' => 'OM',
             'Pashto, Pushto' => 'PS',
-            'Persian' => 'FA',
+           // 'Persian' => 'FA',
             'Polish' => 'PL',
             'Portuguese' => 'PT',
             'Punjabi' => 'PA',
-            'Quechua' => 'QU',
-            'Rhaeto-Romance' => 'RM',
+           // 'Quechua' => 'QU',
+           // 'Rhaeto-Romance' => 'RM',
             'Romanian' => 'RO',
             'Russian' => 'RU',
             'Samoan' => 'SM',
@@ -765,33 +822,34 @@ class Lang
             'Slovenian' => 'SL',
             'Somali' => 'SO',
             'Spanish' => 'ES',
-            'Sudanese' => 'SU',
-            'Swahili' => 'SW',
+            //'Sudanese' => 'SU',
+          //  'Swahili' => 'SW',
             'Swedish' => 'SV',
             'Tagalog' => 'TL',
             'Tajik' => 'TG',
-            'Tamil' => 'TA',
+           // 'Tamil' => 'TA',
             'Tatar' => 'TT',
-            'Tegulu' => 'TE',
+           // 'Tegulu' => 'TE',
             'Thai' => 'TH',
             'Tibetan' => 'BO',
-            'Tigrinya' => 'TI',
+           // 'Tigrinya' => 'TI',
             'Tonga' => 'TO',
-            'Tsonga' => 'TS',
+          //  'Tsonga' => 'TS',
             'Turkish' => 'TR',
             'Turkmen' => 'TK',
             'Twi' => 'TW',
-            'Ukrainian' => 'UK',
-            'Urdu' => 'UR',
+           // 'Ukrainian' => 'UK',
+           // 'Urdu' => 'UR',
             'Uzbek' => 'UZ',
             'Vietnamese' => 'VI',
-            'Volapuk' => 'VO',
+          //  'Volapuk' => 'VO',
             'Welsh' => 'CY',
-            'Wolof' => 'WO',
+           /* 'Wolof' => 'WO',
             'Xhosa' => 'XH',
             'Yiddish' => 'JI',
             'Yoruba' => 'YO',
-            'Zulu' => 'ZU');
+            'Zulu' => 'ZU'*/
+        );
 
 
         $langs = array_flip($langs);

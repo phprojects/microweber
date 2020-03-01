@@ -214,6 +214,11 @@ if (isset($params['is_shop']) and $params['is_shop'] == 'y') {
     }
     mw.edit_content_live_edit = function ($cont_id) {
         Tabs.set(4);
+        mw.$('#mw_posts_edit_live_edit').empty();
+        if(window.thismodal && thismodal.dialogContainer) {
+            thismodal.dialogContainer.querySelector('iframe').style.height = 'auto';
+            thismodal.dialogContainer.scrollTop = 0;
+        }
 
         $('#mw_posts_edit_live_edit').attr('content-id', $cont_id);
         $('#mw_posts_edit_live_edit').removeAttr('live_edit');
@@ -226,13 +231,13 @@ if (isset($params['is_shop']) and $params['is_shop'] == 'y') {
     }
 
     mw.delete_content_live_edit = function (a, callback) {
-        mw.tools.confirm("<?php _e("Do you want to delete this post"); ?>?", function () {
+        mw.tools.confirm("<?php _ejs("Do you want to delete this post"); ?>?", function () {
             var arr = $.isArray(a) ? a : [a];
             var obj = {ids: arr}
             $.post(mw.settings.site_url + "api/content/delete", obj, function (data) {
                 typeof callback === 'function' ? callback.call(data) : '';
                 $('.manage-post-item-' + a).fadeOut();
-                mw.notification.warning("<?php _e('Content was sent to Trash'); ?>.");
+                mw.notification.warning("<?php _ejs('Content was sent to Trash'); ?>.");
                 mw.reload_module_parent('posts')
                 mw.reload_module_parent('shop/products')
                 mw.reload_module_parent('content')

@@ -5,7 +5,6 @@
         mw.require("<?php print( mw_includes_url());  ?>js/jquery-ui-1.10.0.custom.min.js");
         mw.require("events.js");
         mw.require("url.js");
-        mw.require("tools.js");
         mw.require("wysiwyg.js");
         mw.require("css_parser.js");
 
@@ -33,9 +32,7 @@
 <link href="<?php print(mw_includes_url()); ?>css/wysiwyg.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript">
         $(document).ready(function () {
-            mw.tools.module_slider.init();
             mw.tools.dropdown();
-            mw.tools.toolbar_slider.init();
             mw_save_draft_int = self.setInterval(function () {
                 mw.drag.save(mwd.getElementById('main-save-btn'), false, true);
                 if (mw.askusertostay) {

@@ -236,13 +236,18 @@ class OptionManager
 
         $get_all = mw()->database_manager->get($filter);
 
-
         if (!is_array($get_all)) {
             return false;
         }
         $get = array();
         foreach ($get_all as $get_opt) {
             if (isset($get_opt['option_key']) and $key == $get_opt['option_key']) {
+/*
+                $override = $this->app->event_manager->trigger('option.after.get', $get_opt);
+                if (is_array($override) && isset($override[0])) {
+                    $get_opt = $override[0];
+                }*/
+
                 $get[] = $get_opt;
             }
         }
@@ -307,6 +312,8 @@ class OptionManager
             $data = parse_params($data);
         }
 
+        $this->clear_memory();
+        
         $option_group = false;
         if (is_array($data)) {
             if (strval($data['option_key']) != '') {
@@ -370,6 +377,7 @@ class OptionManager
                 $data['allow_scripts'] = true;
                 $data['table'] = $this->tables['options'];
 
+                // $this->app->event_manager->trigger('option.before.save', $data);
                 $save = $this->app->database_manager->save($data);
 
                 if ($option_group != false) {
@@ -461,5 +469,11 @@ class OptionManager
             $this->override_memory[$option_group] = array();
         }
         $this->override_memory[$option_group][$key] = $value;
+    }
+
+    public function clear_memory()
+    {
+        $this->options_memory = array();
+        $this->override_memory = array();
     }
 }

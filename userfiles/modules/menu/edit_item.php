@@ -122,7 +122,7 @@ if ($id != 0) {
                 <?php endif; ?>
 
                 <div class="mw-field change-url-box">
-                    <input type="text" id="id-<?php print $data['id'] ?>" readonly placeholder="<?php _e("URL"); ?>" class="mw-ui-field w100" autocomplete="off" name="url" value="<?php print $data['url'] ?>"/>
+                    <input type="text" id="id-<?php print $data['id'] ?>" placeholder="<?php _e("URL"); ?>" readonly class="mw-ui-field w100" autocomplete="off" name="url" value="<?php print $data['url'] ?>"/>
                     <span class="mw-ui-btn mw-field-append" data-for="id-<?php print $data['id'] ?>"><span class="mw-icon-gear"></span></span>
                 </div>
 
@@ -244,33 +244,61 @@ if ($id != 0) {
         $("#edit-menu_item_edit_wrap-" + id).remove();
     };
     $(document).ready(function () {
+
+//         $('.change-url-box input').on('change', function(){
+// alert(3333)
+//         })
         $('.change-url-box .mw-ui-btn, .change-url-box input').on('click', function(){
             var scope = this;
-            var link = mw.top().instruments.link({
+            /*var link = mw.top().instruments.link({
                 mode: 'dialog'
+            });*/
+
+            //link.handler.on('change', function(e, url, target, name, data){
+            var picker = mw.component({
+                url: 'link_editor_v2',
+                options: {
+                    target: false,
+                    text: false,
+                    controllers: 'page, custom, content, section, layout'
+                }
             });
-            link.handler.on('change', function(e, url, target, name, data){
+            $(picker).on('Result', function(e, ldata){
+                if(!ldata) {
+                    return
+                }
+                var url = ldata.url,
+                    target = ldata.target,
+                    name = ldata.text,
+                    data = ldata.object;
+
                 if(scope.nodeName === 'INPUT'){
                     scope.value = url;
                     $(scope).trigger('change')
                 } else{
-                    var f = scope.dataset.for;
-                    if(f){
-                        $('#' + f).val(url);
+                    if(scope.dataset.for){
+                        var field = $('#' + scope.dataset.for);
+                        field.val(url);
                         var parent = mw.tools.firstParentWithClass(this, 'mw-ui-gbox');
-                        if(data && data.id){
-                            mw.$('[name="content_id"]', parent).val(data.id)
-                        } else{
-                            mw.$('[name="content_id"]', parent).val(false)
+                        fields = mw.$('[name="content_id"], [name="categories_id"]', parent).val('0');
+                        // fields.attr('type', 'text');
+                        if(data){
+                            if(data.type === 'page'){
+                                fields.filter('[name="content_id"]', parent).val(data.id)
+                            } else if(data.type === 'category') {
+                                fields.filter('[name="categories_id"]').val(data.id);
+                            }
                         }
-                        $('#' + f).trigger('change')
+                        field.trigger('change')
                     }
                 }
-                link.dialog.remove();
-            })
-            $(link.frame).on('load', function () {
+                //link.dialog.remove();
+            });
+
+            //})
+            /*$(link.frame).on('load', function () {
                 $('#customweburl_text_field_holder', this.contentWindow.document).hide()
-            })
+            })*/
         })
     })
 </script>

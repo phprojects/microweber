@@ -87,17 +87,18 @@
                     <span class="mw-ui-btn mw-ui-btn-medium" onclick="cropcancel()"><?php _e("Cancel"); ?></span>
                 </div>
             </div>
+            <div class="mw-ui-field-holder" id="edititems">
             <div class="mw-ui-field-holder" style="padding-bottom: 20px;" id="editmenu">
                 <div class="mw-ui-btn-nav pull-left" style="margin-right:12px">
 
 
-          <span class="mw-ui-btn" onclick="mw.createCropTool();">
-            <span class="mw-icon-crop"></span> &nbsp;<?php _e('Crop') ?>
-          </span>
-          <span class="mw-ui-btn mw-ui-btn-icon"
-                onclick="mw.image.rotate(mw.image.current);mw.image.current_need_resize = true;mw.$('#mw_image_reset').removeClass('disabled')">
-            <span class="mw-icon-app-refresh-empty"></span> &nbsp; <?php _e('Rotate'); ?>
-          </span>
+                  <span class="mw-ui-btn" onclick="createCropTool();">
+                    <span class="mw-icon-crop"></span> &nbsp;<?php _e('Crop') ?>
+                  </span>
+                  <span class="mw-ui-btn mw-ui-btn-icon"
+                        onclick="mw.image.rotate(mw.image.current);mw.image.current_need_resize = true;mw.$('#mw_image_reset').removeClass('disabled')">
+                    <span class="mw-icon-app-refresh-empty"></span> &nbsp; <?php _e('Rotate'); ?>
+                  </span>
 
                 </div>
 
@@ -304,6 +305,7 @@
                     </div>
                 </div>
             </div>
+            </div>
             <div class="mw-ui-btn-nav nav-actions">
 
 
@@ -326,7 +328,7 @@
   }
 
 
-    mw.createCropTool = function () {
+    var createCropTool = function () {
         mw.$('#cropmenu').show();
         mw.$('#editmenu').hide();
         cropImage = $('#mwimagecurrent');
@@ -337,6 +339,8 @@
               });
             }
         });
+        $('.mw-ui-btn-nav.nav-actions').hide();
+        $('#edititems').hide()
     }
 
 
@@ -357,6 +361,9 @@
         mw.$('#cropmenu').hide();
         mw.$('#editmenu').show();
 
+        $('.mw-ui-btn-nav.nav-actions').show();
+        $('#edititems').show()
+
     }
     cropcancel = function () {
 
@@ -367,6 +374,10 @@
         newimg.src = cropImage.attr('src');
         newimg.id = 'mwimagecurrent';
         cropImage.replaceWith(newimg);
+
+        $('.mw-ui-btn-nav.nav-actions').show();
+        $('#edititems').show()
+
     }
 
     $(mwd).ready(function () {
@@ -405,29 +416,32 @@
         mw.image.current_original = src;
 
         mw.image.current = mwd.querySelector("#mwimagecurrent");
-        if(!!title)mw.$("#image-title").val(title);
-        if(!!alt)mw.$("#image-alt").val(alt);
+        if (typeof title !== "undefined") mw.$("#image-title").val(title);
+        if (typeof alt !== "undefined") mw.$("#image-alt").val(alt);
+        //if(!!title)mw.$("#image-title").val(title);
+        //if(!!alt)mw.$("#image-alt").val(alt);
 
         mw.$(".mw-ui-btn-savetheimage").on('click', function () {
 
-
-            console.log(SelectedImage, isBG)
+            mw.top().wysiwyg.change(SelectedImage);
             if(isBG) {
-                $(SelectedImage).css(isBG)
-
+                $(SelectedImage).css(isBG);
             }
-            CurrSRC(mw.image.current.src)
-            if(!!mw.image.current_align){
+            CurrSRC(mw.image.current.src);
+            if (typeof mw.image.current_align !== "undefined"){
+            //if(!!mw.image.current_align){
                 SelectedImage.align = mw.image.current_align;
             }
-            if(!!SelectedImage.title){
+            if (typeof SelectedImage.title !== "undefined"){
+            //if(!!SelectedImage.title){
                 SelectedImage.title = mw.$("#image-title").val();
             }
-            if(!!SelectedImage.alt){
+            if (typeof SelectedImage.alt !== "undefined"){
+            //if(!!SelectedImage.alt){
                 SelectedImage.alt = mw.$("#image-alt").val();
             }
 
-            if (mw.image.current_need_resize && SelectedImage.nodeName == 'IMG') {
+            if (mw.image.current_need_resize && SelectedImage.nodeName === 'IMG') {
                 mw.image.preload(mw.image.current.src, function (w, h) {
                     SelectedImage.style.width = w + 'px';
                     SelectedImage.style.height = 'auto';
@@ -441,8 +455,10 @@
 
             parent.mw.wysiwyg.normalizeBase64Image(SelectedImage);
 
-            var link_url = $("#link").val()
-            if (!!link_url ) {
+            var link_url = $("#link").val();
+            if (link_url == ""){
+                $(SelectedImage).unwrap('a');
+            } else {
                 link_url = link_url.trim();
                 if (mw.tools.hasParentsWithTag(SelectedImage, 'a')) {
                     $(mw.tools.firstParentWithTag(SelectedImage, 'a')).attr("href", link_url);
@@ -453,8 +469,13 @@
             }
 
             setColor(true);
-            parent.mw.wysiwyg.change(mw.tools.firstParentWithClass(SelectedImage, 'edit'));
 
+           // alert(parent.mw.tools.firstParentWithClass(SelectedImage, 'edit'));
+
+
+            if(parent.mw.tools.hasParentsWithClass(SelectedImage, 'edit')){
+            parent.mw.wysiwyg.change(parent.mw.tools.firstParentWithClass(SelectedImage, 'edit'));
+            }
             window.top.$(window.top).trigger('imageSrcChanged', [SelectedImage, CurrSRC()])
 
             if(window.thismodal){

@@ -39,6 +39,7 @@ function get_mail_templates_by_type($type = '')
     $templates = array();
 
     foreach (get_mail_templates() as $template) {
+
         if ($template['type'] == $type) {
 
             if (isset($template['is_default'])) {
@@ -247,4 +248,3 @@ event_bind('mw.cart.confirm_email_send', function ($order_id) {
     return array('mail_template'=>$mail_template);
 
 });
-

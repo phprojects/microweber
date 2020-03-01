@@ -14,7 +14,8 @@ class BackupManager
 	public $importFile = false;
 	public $importBatch = true;
 	public $importOvewriteById = false;
-	
+	public $importLanguage = false;
+
 	public function __construct()
 	{
 		if (php_can_use_func('ini_set')) {
@@ -25,16 +26,16 @@ class BackupManager
 			set_time_limit(0);
 		}
 	}
-	
+
 	/**
 	 * Set logger
 	 * @param class $logger
 	 */
 	public function setLogger($logger) {
-		
+
 		BackupImportLogger::setLogger($logger);
 		BackupExportLogger::setLogger($logger);
-		
+
 	}
 
 	/**
@@ -44,7 +45,7 @@ class BackupManager
 	public function setExportAllData($exportAllData = true) {
 		$this->exportAllData = $exportAllData;
 	}
-	
+
 	/**
 	 * Set export file format
 	 * @param string $type
@@ -53,7 +54,7 @@ class BackupManager
 	{
 		$this->exportType = $type;
 	}
-	
+
 	/**
 	 * Set wich data want to export
 	 * @param array $data
@@ -65,20 +66,20 @@ class BackupManager
 	public function setExportIncludeMedia($includeMedia) {
 		$this->exportIncludeMedia = $includeMedia;
 	}
-	
+
 	/**
 	 * Set import file format
 	 * @param string $type
 	 */
-	public function setImportType($type) 
+	public function setImportType($type)
 	{
 		$this->importType = $type;
 	}
-	
+
 	public function setImportBatch($importBatch) {
 		$this->importBatch = $importBatch;
 	}
-	
+
 	public function setImportOvewriteById($overwrite) {
 		$this->importOvewriteById = $overwrite;
 	}
@@ -87,37 +88,41 @@ class BackupManager
 	 * Set import file path
 	 * @param string $file
 	 */
-	public function setImportFile($file) 
+	public function setImportFile($file)
 	{
 		if (! is_file($file)) {
 			return array('error' => 'Backup Manager: You have not provided a existing backup to restore.');
 		}
-		
+
 		$this->setImportType(pathinfo($file, PATHINFO_EXTENSION));
 		$this->importFile = $file;
 	}
+
+	public function setImportLanguage($abr) {
+	    $this->importLanguage = trim($abr);
+    }
 
 	/**
 	 * Start exporting
 	 * @return string[]
 	 */
-	public function startExport() 
+	public function startExport()
 	{
 		try {
-			
+
 			/* // If we want export media
 			if (in_array('media', $this->exportData['tables']) || $this->exportAllData == true) {
 				$this->exportType = 'zip';
 			} */
-			
+
 			$export = new Export();
 			$export->setType($this->exportType);
 			$export->setExportData($this->exportData);
 			$export->setExportAllData($this->exportAllData);
 			$export->setIncludeMedia($this->exportIncludeMedia);
-			
+
 			return $export->start();
-		
+
 		} catch (\Exception $e) {
 			return array("error"=>$e->getMessage(), "file"=>$e->getFile(), "code"=>$e->getCode(), "line"=>$e->getLine());
 		}
@@ -128,35 +133,35 @@ class BackupManager
 	 * Start importing
 	 * @return array
 	 */
-	public function startImport() 
+	public function startImport()
 	{
 		try {
 			$import = new Import();
 			$import->setType($this->importType);
 			$import->setFile($this->importFile);
-			
+			$import->setLanguage($this->importLanguage);
+
 			$content = $import->readContentWithCache();
-			
-			if (isset($content['error'])) {
+ 			if (isset($content['error'])) {
 				return $content;
 			}
 
-			if (isset($content['must_choice_language']) && $content['must_choice_language']) {
-			    return $content;
+            if (isset($content['must_choice_language']) && $content['must_choice_language']) {
+                return $content;
             }
 
 			$writer = new DatabaseWriter();
 			$writer->setContent($content['data']);
 			$writer->setOverwriteById($this->importOvewriteById);
-			
+
 			if ($this->importBatch) {
 				$writer->runWriterWithBatch();
 			} else {
 				$writer->runWriter();
 			}
-			
+
 			return $writer->getImportLog();
-			
+
 		} catch (\Exception $e) {
 			return array("file"=>$e->getFile(), "line"=>$e->getLine(), "error"=>$e->getMessage());
 		}
@@ -166,10 +171,10 @@ class BackupManager
 	 * Get backup location path.
 	 * @return string
 	 */
-	public function getBackupLocation() 
+	public function getBackupLocation()
 	{
 		$backupContent = storage_path() . '/backup_content/' . \App::environment(). '/';
-		
+
 		if (! is_dir($backupContent)) {
 			mkdir_recursive($backupContent);
 			$htaccess = $backupContent . '.htaccess';
@@ -181,4 +186,15 @@ class BackupManager
 
 		return $backupContent;
 	}
+
+	public function getBackupCacheLocation()
+    {
+        $backupContent = $this->getBackupLocation() . '/cache_export_zip/';
+
+        if (! is_dir($backupContent)) {
+            mkdir_recursive($backupContent);
+        }
+
+        return $backupContent;
+    }
 }

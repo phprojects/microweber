@@ -31,17 +31,7 @@
 </style>
 <?php
 
-//
-//$init_image_options = array();
-//$default_image_options = 'Tags, Author, Source, Link';
-//$image_options = isset($params['image-options']) ? $params['image-options'] : isset($params['data-image-options']) ? $params['data-image-options'] : $default_image_options;
-//
-//
-//$temp = explode(',', $image_options);
-//foreach ($temp as $i) {
-//    array_push($init_image_options, trim($i));
-//}
-//
+
 
 if (!isset($for_id)) {
     $for_id = 0;
@@ -143,14 +133,14 @@ if ($for_id != false) {
 
 
 <script type="text/javascript">
-    mw_admin_puctires_upload_browse_existing = function () {
+    mw_admin_pictures_upload_browse_existing = function () {
 
 
         // var dialog = window.top.mw.dialogIframe({
         var dialog = window.top.mw.dialogIframe({
-            url: '<?php print site_url() ?>module/?type=files/admin&live_edit=true&remeber_path=true&ui=basic&start_path=media_host_base&from_admin=true&file_types=images&id=mw_admin_puctires_upload_browse_existing_modal<?php print $params['id'] ?>&from_url=<?php print site_url() ?>',
+            url: '<?php print site_url() ?>module/?type=files/admin&live_edit=true&remeber_path=true&ui=basic&start_path=media_host_base&from_admin=true&file_types=images&id=mw_admin_pictures_upload_browse_existing_modal<?php print $params['id'] ?>&from_url=<?php print site_url() ?>',
             title: "Browse pictures",
-            id: 'mw_admin_puctires_upload_browse_existing_modal<?php print $params['id'] ?>',
+            id: 'mw_admin_pictures_upload_browse_existing_modal<?php print $params['id'] ?>',
             height: 'auto',
             autoHeight: true
         })
@@ -159,7 +149,7 @@ if ($for_id != false) {
                 after_upld(this, 'save', '<?php print $for ?>', '<?php print $for_id ?>', '<?php print $params['id'] ?>');
 
                 after_upld(this, 'done', '<?php print $for ?>', '<?php print $for_id ?>', '<?php print $params['id'] ?>');
-                mw.notification.success('<?php _e('The image is added to the gallery') ?>');
+                mw.notification.success('<?php _ejs('The image is added to the gallery') ?>');
 
                 dialog.remove();
 
@@ -177,7 +167,7 @@ if (!isset($data["thumbnail"])) {
 
 <input name="thumbnail" type="hidden" value="<?php print ($data['thumbnail']) ?>"/>
 <div style="text-align: right; margin-bottom: 15px;">
-    <a href="javascript:mw_admin_puctires_upload_browse_existing()" class="mw-ui-btn mw-ui-btn-small mw-ui-btn-info mw-ui-btn-outline btn-rounded"> <?php _e('Browse uploaded'); ?></a>
+    <a href="javascript:mw_admin_pictures_upload_browse_existing()" class="mw-ui-btn mw-ui-btn-small mw-ui-btn-info mw-ui-btn-outline btn-rounded"> <?php _e('Browse uploaded'); ?></a>
     <div class="clearfix"></div>
 </div>
 
@@ -203,16 +193,6 @@ if (!isset($data["thumbnail"])) {
 </div>
 
 
-<?php
-/*
-<div class="admin-thumbs-holder left  ">
-    <div class="relative post-thumb-uploader" id="backend_image_uploader">
-        <small id="backend_image_uploader_label"><?php _e("Upload"); ?></small>
-    </div>
-</div>
-*/
-
-?>
 
 <script>
     window.imageOptions = {};
@@ -426,6 +406,7 @@ if (!isset($data["thumbnail"])) {
             $(uploader).on("done", function (e, a) {
                 after_upld(undefined, 'done');
             });
+
             $(uploader).on("FileUploaded done", function (e, a) {
                 if (a && a.ask_user_to_enable_auto_resizing) {
                     mw.module_pictures.open_image_upload_settings_modal();
@@ -439,6 +420,19 @@ if (!isset($data["thumbnail"])) {
 
 
             });
+
+
+            //$(uploader).remove();
+            /*mw.$("#backend_image_uploader").on('click', function () {
+                mw.fileWindow({
+                    types: 'images',
+                    change: function (url, b) {
+                        url = url.toString();
+                        console.log(url, b)
+                    }
+                });
+            });*/
+
             $(".image-tag-view").remove();
             $(".image-tags").each(function () {
                 $(".mw-post-media-img", mw.tools.firstParentWithClass(this, 'admin-thumb-item'))

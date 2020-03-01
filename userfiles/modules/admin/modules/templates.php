@@ -29,16 +29,16 @@ if (!isset($params['parent-module-id'])) {
 }
 
 
-$site_templates = site_templates();
-
-$module_templates = module_templates($params['parent-module']);
-$templates = module_templates($params['parent-module']);
-
-
 $mod_name = $params['parent-module'];
-$mod_name = str_replace('admin', '', $mod_name);
+$mod_name = str_replace('/admin', '', $mod_name);
 $mod_name = rtrim($mod_name, DS);
 $mod_name = rtrim($mod_name, '/');
+
+$site_templates = site_templates();
+
+//$module_templates = module_templates($params['parent-module']);
+$templates = $module_templates = module_templates($mod_name);
+
 
 $screenshots = false;
 if (isset($params['data-screenshots'])) {
@@ -72,6 +72,8 @@ if ($screenshots) {
     }
 }
 
+
+
 ?>
 
 
@@ -79,7 +81,7 @@ if ($screenshots) {
     $(document).ready(function () {
         mw.options.form('.mw-mod-template-settings-holder', function () {
             if (mw.notification != undefined) {
-                mw.notification.success('<?php _e("Module template is changed"); ?>');
+                mw.notification.success('<?php _ejs("Module template is changed"); ?>');
             }
 
             <?php if ($screenshots): ?>

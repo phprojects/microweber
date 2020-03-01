@@ -1,21 +1,33 @@
 <?php only_admin_access(); ?>
 
 <?php
-$logoimage = get_option('logoimage', $params['id']);
-$logoimage_inverse = get_option('logoimage_inverse', $params['id']);
-$text = get_option('text', $params['id']);
-$font_family = get_option('font_family', $params['id']);
-$font_size = get_option('font_size', $params['id']);
+
+
+
+$logo_name =  $params['id'];
+
+if(isset($params['logo-name'])){
+    $logo_name = $params['logo-name'];
+} else if(isset($params['logo_name'])){
+    $logo_name = $params['logo_name'];
+}
+
+
+$logoimage = get_option('logoimage', $logo_name);
+$logoimage_inverse = get_option('logoimage_inverse', $logo_name);
+$text = get_option('text', $logo_name);
+$font_family = get_option('font_family', $logo_name);
+$font_size = get_option('font_size', $logo_name);
 if ($font_size == false) {
     $font_size = 30;
 }
-$logotype = get_option('logotype', $params['id']);
+$logotype = get_option('logotype', $logo_name);
 
 if (!$logotype) {
     $logotype = 'image';
 }
 
-$size = get_option('size', $params['id']);
+$size = get_option('size', $logo_name);
 if ($size == false or $size == '') {
     $size = 60;
 }
@@ -124,6 +136,10 @@ if (isset($params['data-alt-logo'])) {
 </style>
 
 <script>
+    mw.require('tools/images.js');
+</script>
+
+<script>
 
     $(document).ready(function () {
         UP = mw.uploader({
@@ -180,14 +196,14 @@ if (isset($params['data-alt-logo'])) {
     }
 
     var mw_admin_logo_upload_browse_existing = function (inverse = false) {
-        var modal_id = 'mw_admin_logo_upload_browse_existing_modal<?php print $params['id'] ?>' + (inverse ? '_inverse' : '');
+        var modal_id = 'mw_admin_logo_upload_browse_existing_modal<?php print $logo_name ?>' + (inverse ? '_inverse' : '');
         var dialog = mw.top().dialogIframe({
-            url: '<?php print site_url() ?>module/?type=files/admin&live_edit=true&remeber_path=true&ui=basic&start_path=media_host_base&from_admin=true&file_types=images&id=mw_admin_logo_upload_browse_existing_modal<?php print $params['id'] ?>&from_url=<?php print site_url() ?>',
+            url: '<?php print site_url() ?>module/?type=files/admin&live_edit=true&remeber_path=true&ui=basic&start_path=media_host_base&from_admin=true&file_types=images&id=mw_admin_logo_upload_browse_existing_modal<?php print $logo_name ?>&from_url=<?php print site_url() ?>',
             title: "Browse pictures",
             id: modal_id,
             onload: function () {
                 this.iframe.contentWindow.mw.on.hashParam('select-file', function () {
-                    mw.notification.success('<?php _e('Logo image selected') ?>');
+                    mw.notification.success('<?php _ejs('Logo image selected') ?>');
                     if (inverse) {
                         setNewImageInv(this);
                     } else {
@@ -322,28 +338,56 @@ if (isset($params['data-alt-logo'])) {
         </div>
     </div>
 
+
     <hr/>
 
+
+    <script>
+
+
+
+        $(document).ready(function(){
+
+
+            window.top.mw.on('imageSrcChanged', function(e, node, url){
+                setNewImage(url);
+                setAuto();
+            });
+
+        });
+
+        mw.edit_logo_image_crop = function () {
+            window.top.mw.image.currentResizing = $('#logo-image-edit');
+            window.top.mw.image.settings();
+            return false;
+
+        }
+
+    </script>
     <div class="js-logo-image-holder">
         <div class="mw-ui-field-holder p-t-0">
-            <label class="mw-ui-label">Main Logo</label>
+            <label class="mw-ui-label">Main Logo
+            </label>
         </div>
 
         <div class="mw-ui-row image-row">
             <div class="mw-ui-col">
                 <div class="the-image-holder">
+
+                    <img style="display: none;" src="<?php print $logoimage ?>" id="logo-image-edit">
+
                     <img src="<?php if ($logoimage) {
                         echo thumbnail($logoimage, 200);
                     } else {
                         echo thumbnail('', 200);
-                    } ?>" class="the-image" alt="" <?php if ($logoimage != '' and $logoimage != false) { ?><?php } else { ?> style="display:block;" <?php } ?> />
+                    } ?>" class="the-image"  alt="" <?php if ($logoimage != '' and $logoimage != false) { ?><?php } else { ?> style="display:block;" <?php } ?> />
                 </div>
             </div>
 
             <div class="mw-ui-col m-t-15">
                 <span class="mw-ui-btn mw-ui-btn-info mw-ui-btn-medium mw-ui-btn-rounded" id="upload-image">Upload Image</span>
                 <a href="javascript:mw_admin_logo_upload_browse_existing()" class="mw-ui-btn mw-ui-btn-medium mw-ui-btn-info mw-ui-btn-outline mw-ui-btn-rounded"><?php _e('Browse Uploaded'); ?></a>
-            </div>
+                <?php if ($logotype == 'both' or $logotype == 'image' or $logotype == false){ ?> <a    class="mw-ui-btn mw-ui-btn-medium mw-ui-btn-info mw-ui-btn-outline mw-ui-btn-rounded" onclick="mw.edit_logo_image_crop()" href="javascript:void(0);"  >Edit image</a> <?php } ?>            </div>
         </div>
         <hr/>
 
@@ -627,4 +671,4 @@ if (isset($params['data-alt-logo'])) {
     </div>
 </div>
 
-<module type="admin/modules/templates" simple=true/>
+<module type="admin/modules/templates" simple="true"/>

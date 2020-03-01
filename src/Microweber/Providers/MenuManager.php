@@ -108,7 +108,7 @@ class MenuManager
             $url_from_content = 1;
         }
         if (isset($data_to_save['content_id']) and intval($data_to_save['content_id']) == 0) {
-            unset($data_to_save['content_id']);
+            //unset($data_to_save['content_id']);
         }
 
         if (isset($data_to_save['url_target'])) {
@@ -116,7 +116,7 @@ class MenuManager
         }
 
         if (isset($data_to_save['categories_id']) and intval($data_to_save['categories_id']) == 0) {
-            unset($data_to_save['categories_id']);
+            //unset($data_to_save['categories_id']);
             //$url_from_content = 1;
         }
 
@@ -151,7 +151,13 @@ class MenuManager
         $data_to_save['table'] = $table;
         $data_to_save['item_type'] = 'menu_item';
 
+
         $save = $this->app->database_manager->save($table, $data_to_save);
+
+        /*
+        $data_to_save['id'] = $save;
+        $this->app->event_manager->trigger('menu.after.save', $data_to_save);
+        */
 
         $this->app->cache_manager->delete('menus/global');
 
@@ -193,6 +199,7 @@ class MenuManager
         $params['item_type'] = 'menu';
         //$params['debug'] = 'menu';
         $menus = $this->app->database_manager->get($params);
+
         if (!empty($menus)) {
             return $menus;
         } else {
@@ -452,6 +459,11 @@ class MenuManager
 
         foreach ($q as $item) {
 
+         /*   $override = $this->app->event_manager->trigger('menu.after.get_item', $item);
+            if (is_array($override) && isset($override[0])) {
+                $item = $override[0];
+            }*/
+
             $title = '';
             $url = '';
             $is_active = true;
@@ -618,6 +630,11 @@ class MenuManager
                     }
 
 
+                }
+
+                $override = $this->app->event_manager->trigger('menu.after.get_item', $item);
+                if (is_array($override) && isset($override[0])) {
+                    $item = $override[0];
                 }
 
                 $to_print .= '<' . $li_tag . '  class="{li_class}' . ' ' . $active_class . '  ' . $has_childs_class . ' {nest_level}" data-item-id="' . $item['id'] . '" >';

@@ -53,6 +53,7 @@ class InstallController extends Controller
 
         $connection = Config::get('database.connections');
 
+
         $this->log('Preparing to install');
         if (isset($input['make_install'])) {
             $config_only = false;
@@ -227,6 +228,9 @@ class InstallController extends Controller
                 if (!$install_step or $install_step == 4) {
                     $this->log('Setting up template');
                     $installer = new Install\TemplateInstaller();
+                    if (isset($input['site_lang'])) {
+                        $installer->setLanguage($input['site_lang']);
+                    }
                     $installer->logger = $this;
                     $installer->run();
                 }
@@ -311,12 +315,14 @@ class InstallController extends Controller
 
         $defaultDbEngine = Config::get('database.default');
 
+        if (extension_loaded('pdo_sqlite')) {
+            $defaultDbEngine = 'sqlite';
+        }
+
         if (!$defaultDbEngine) {
             $defaultDbEngine = 'mysql';
         }
-        if (extension_loaded('pdo_sqlite')) {
-            // $defaultDbEngine = 'sqlite';
-        }
+
 
         $dbEngines = Config::get('database.connections');
 

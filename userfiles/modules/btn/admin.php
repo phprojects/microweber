@@ -3,6 +3,12 @@
 $style = get_option('button_style', $params['id']);
 $size = get_option('button_size', $params['id']);
 $action = get_option('button_action', $params['id']);
+
+$onclick = false;
+if (isset($params['button_onclick'])) {
+    $onclick = $params['button_onclick'];
+}
+
 $url = get_option('url', $params['id']);
 $popupcontent = get_option('popupcontent', $params['id']);
 $text = get_option('text', $params['id']);
@@ -34,6 +40,9 @@ $icon = get_option('icon', $params['id']);
         text-align: center;
     }
 
+    #icon-picker .mw-ui-btn > *:first-child{
+        margin-right: 7px;
+    }
     #icon-picker input,
     #icon-picker {
         width: 250px;
@@ -96,6 +105,8 @@ $icon = get_option('icon', $params['id']);
         <input type="text" name="text" class="mw_option_field mw-ui-field w100" value="<?php print $text; ?>" placeholder="<?php _e("Button"); ?>"/>
     </div>
 
+
+    <?php if (!$onclick): ?>
     <div class="mw-ui-field-holder">
         <label class="mw-ui-label"><?php _e("Action"); ?></label>
         <select class="mw-ui-field mw_option_field w100" id="action" name="button_action">
@@ -121,12 +132,16 @@ $icon = get_option('icon', $params['id']);
 
         </select>
     </div>
+    <?php endif; ?>
 
+    <?php if (!$onclick): ?>
     <div id="editor_holder" class="mw-ui-field-holder">
         <label class="mw-ui-label"><?php _e("Popup content"); ?></label>
         <textarea class="mw_option_field" name="popupcontent" id="popupcontent"><?php print $popupcontent; ?></textarea>
     </div>
+    <?php endif; ?>
 
+    <?php if (!$onclick): ?>
     <div id="btn_url_holder">
         <div class="mw-ui-btn-nav">
             <input
@@ -139,36 +154,34 @@ $icon = get_option('icon', $params['id']);
                 class="mw_option_field mw-ui-field"/>
             <a href="javascript:;" class="mw-ui-btn"><span class="mw-icon-gear"></span></a>
         </div>
-        <div class="mw-ui-field-holder">
-            <label class="mw-ui-check">
-                <input type="checkbox" name="url_blank" value="y" class="mw_option_field"<?php if ($url_blank == 'y'): ?> checked="checked" <?php endif; ?>>
-                <span></span> <span><?php _e("Open in new window"); ?></span>
-            </label>
-        </div>
     </div>
+    <?php endif; ?>
 
+    <?php if (!$onclick): ?>
+    <div class="mw-ui-field-holder">
+        <label class="mw-ui-check">
+            <input type="checkbox" name="url_blank" value="y" class="mw_option_field"<?php if ($url_blank == 'y'): ?> checked="checked" <?php endif; ?>>
+            <span></span> <span><?php _e("Open in new window"); ?></span>
+        </label>
+    </div>
+    <?php endif; ?>
 
     <script>
         mw.top().require('instruments.js');
-        var _pickUrl = false;
         var pickUrl = function(){
-            var conf = {
-                instrument: 'link',
-                id: 'pick-link'
-            };
-            if(!_pickUrl) {
-                _pickUrl = mw.top().instruments.run(conf);
-                _pickUrl.handler.on('change', function(e, val){
-                    mw.$('#btn-default_url').val(val).trigger('change');
-                    var dialog = mw.top().dialog.get('#pick-link');
-                    if(dialog){
-                        dialog.remove();
-                    }
-
-                });
-            } else{
-                mw.top().instruments.run(conf);
-            }
+            var picker = mw.component({
+                url: 'link_editor_v2',
+                options: {
+                    target: false,
+                    text: false,
+                    controllers: 'page, custom, content, section, layout, emial'
+                }
+            });
+            $(picker).on('Result', function(e, ldata){
+                if(ldata){
+                    mw.$('#btn-default_url').val(ldata.url).trigger('change');
+                }
+            });
         };
 
 
@@ -176,10 +189,6 @@ $icon = get_option('icon', $params['id']);
             mw.$('#btn_url_holder').find('a, input').on('click', function(){
                 pickUrl();
             });
-            setTimeout(function () {
-                console.log( $('#btn_url_holder').find('a, input'));
-                console.log( $('#btn_url_holder'));
-            }, 3333)
         })
 
     </script>
@@ -190,19 +199,17 @@ $icon = get_option('icon', $params['id']);
             $(document).ready(function () {
                 mw.iconSelector.iconDropdown("#icon-picker", {
                     onchange: function (iconClass) {
-
                         $('[name="icon"]').val(iconClass).trigger('change')
                     },
                     mode: 'absolute',
                     value: '<?php print $icon; ?>'
                 });
-                $("#icon-picker input").val($('[name="icon"]').val())
             })
         </script>
         <textarea name="icon" class="mw_option_field" style="display: none"><?php print $icon; ?></textarea>
         <div id="icon-picker"></div>
     </div>
     <div class="mw-ui-field-holder">
-        <module type="admin/modules/templates" simple=true/>
+        <module type="admin/modules/templates" simple="true"/>
     </div>
 </div>

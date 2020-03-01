@@ -31,7 +31,6 @@
 
     mw.edit_content.load_page_preview = function (element_id) {
         var element_id = element_id || 'mw-admin-content-iframe-editor';
-        var area = mwd.getElementById(element_id);
         var parent_page = mw.$('#mw-parent-page-value-<?php print $rand; ?>', '#<?php print $params['id'] ?>').val();
         var content_id = mw.$('#mw-content-id-value', '#<?php print $params['id'] ?>').val();
         var content_type = mw.$('#mw-content-type-value-<?php print $rand; ?>', '#<?php print $params['id'] ?>').val()
@@ -108,7 +107,7 @@
             <?php endif; ?>
         }
         if (mw.notification != undefined) {
-            mw.notification.success('<?php _e('Content saved!'); ?>');
+            mw.notification.success('<?php _ejs('Content saved!'); ?>');
         }
         if (parent !== self && !!parent.mw) {
 
@@ -307,7 +306,7 @@
                 $(window).trigger('adminSaveFailed');
                 module.removeClass('loading');
                 if (typeof this.title !== 'undefined') {
-                    mw.notification.error('<?php _e('Please enter title'); ?>');
+                    mw.notification.error('<?php _ejs('Please enter title'); ?>');
 
                     $('#content-title-field-row').animate({
                         backgroundColor: "red"
@@ -319,7 +318,7 @@
 
                 }
                 if (typeof this.content !== 'undefined') {
-                    mw.notification.error('<?php _e('Please enter content'); ?>');
+                    mw.notification.error('<?php _ejs('Please enter content'); ?>');
                 }
                 if (typeof this.error !== 'undefined') {
                     mw.session.checkPause = false;

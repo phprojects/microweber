@@ -590,11 +590,14 @@ class ContentManager
             unset($get_params[$paging_param]);
         }
 
-        if ($get_params) {
+        if ($get_params and is_array($get_params)) {
+            $get_params = array_filter($get_params);
 
             $get_params_append = implode('&', array_map(
                 function ($v, $k) {
+                    if($k and $v and !is_array($v)){
                     return sprintf("%s=%s", $k, $v);
+                    }
                 },
                 $get_params,
                 array_keys($get_params)
@@ -1482,7 +1485,7 @@ class ContentManager
                         define('POST_ID', intval($content['id']));
                     }
 
-                    if ($page['content_type'] == 'product') {
+                    if (is_array($page) and $page['content_type'] == 'product') {
                         if (defined('PRODUCT_ID') == false) {
                             define('PRODUCT_ID', intval($content['id']));
                         }
@@ -2068,6 +2071,11 @@ class ContentManager
             $link = site_url($link['url']);
         } else {
             $link = ($link['url']);
+        }
+
+        $override = $this->app->event_manager->trigger('content.link.after', $link);
+        if (is_array($override) && isset($override[0])) {
+            $link = $override[0];
         }
 
         return $link;

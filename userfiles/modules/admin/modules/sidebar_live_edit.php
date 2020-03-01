@@ -26,12 +26,19 @@
                     class="tabnav tip tab mw-lsmodules-tab"
                     data-tip="<?php _e("Modules"); ?>"
                     data-tipposition="left-center"><i class="mw-liveedit-cbar-icon"> </i></a>
+
+                <?php if (file_exists(TEMPLATE_DIR . 'template_settings.php')) { ?>
+
                 <a
                     href="javascript:;"
                    class="tabnav tip mw-lstemplatee-tab"
                    onclick="mw.liveEditWidgets.loadTemplateSettings('<?php print api_url() ?>module?id=template_settings_admin&live_edit=true&module_settings=true&type=settings/template&autosize=false&content_id=<?php print CONTENT_ID ?>')"
                     data-tip="<?php _e("Template Settings"); ?>"
                     data-tipposition="left-center"><i class="mw-liveedit-cbar-icon"> </i></a>
+
+                <?php } ?>
+
+
                 <a href="javascript:;" class="tabnav tip mw-lscsse-tab"
                    onclick="mw.liveEditWidgets.cssEditorInSidebarAccordion()"
                    data-tip="<?php _e("Visual Editor"); ?>"
@@ -45,12 +52,12 @@
         <div class="mw-ui-box mw-scroll-box" id="mw-sidebar-modules-and-layouts-holder">
             <div class="tabitem mw-normalize-css">
                 <div class="mw-live-edit-tab-title layouts">
-                    <h6>Layouts</h6>
+                    <h6><?php _e('Layouts'); ?></h6>
                     <div class="mw-liveedit-sidebar-search-wrapper">
                         <label for="search-input">
                             <i class="mw-icon-search" aria-hidden="true"></i>
                         </label>
-                        <input onkeyup="mwSidebarSearchItems(this.value, 'layouts')" placeholder="Search for Layouts" autocomplete="off" spellcheck="false" autocorrect="off" tabindex="1" data-id="mw-sidebar-search-input-for-modules-and-layouts">
+                        <input onkeyup="mwSidebarSearchItems(this.value, 'layouts')" placeholder="<?php _e('Search for Layouts'); ?>" autocomplete="off" spellcheck="false" autocorrect="off" tabindex="1" data-id="mw-sidebar-search-input-for-modules-and-layouts">
                         <a href="javascript:mwSidebarSearchClear('layouts');" class="mw-sidebar-search-clear-x-btn mw-icon-close" aria-hidden="true" style="display: none;"></a>
                     </div>
                     <p class="mw-search-no-results" ><?php _e("No results were found"); ?></p>
@@ -66,7 +73,7 @@
 
             <div class="tabitem mw-normalize-css" style="display: none">
                 <div class="mw-live-edit-tab-title modules">
-                    <h6>Modules</h6>
+                    <h6><?php _e("Modules");?></h6>
                     <div class="mw-liveedit-sidebar-search-wrapper">
                         <label for="search-input">
                             <i class="mw-icon-search" aria-hidden="true"></i>
@@ -85,19 +92,21 @@
                     <div data-xmodule type="admin/modules/list" id="mw-sidebar-modules-list"></div>
                 </div>
             </div>
+            <?php if (file_exists(TEMPLATE_DIR . 'template_settings.php')) { ?>
+
             <div class="tabitem mw-normalize-css" style="display: none;">
                 <div class="mw-live-edit-tab-title">
-                    <h6>Template settings</h6>
+                    <h6><?php _e("Template settings"); ?></h6>
                 </div>
 
-                <?php if (file_exists(TEMPLATE_DIR . 'template_settings.php')) { ?>
                     <div id="mw-live-edit-sidebar-settings-iframe-holder-template-settings" class="mw-live-edit-sidebar-iframe-holder"></div>
-                <?php } ?>
+
 
             </div>
+            <?php } ?>
             <div class="tabitem ">
                 <div class="mw-live-edit-tab-title">
-                    <h6>Visual editor</h6>
+                    <h6><?php _e("Visual editor"); ?></h6>
                 </div>
                 <div id="mw-css-editor-sidebar-iframe-holder" class="  mw-live-edit-sidebar-iframe-holder"></div>
             </div>

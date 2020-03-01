@@ -13,9 +13,14 @@
     </div>
 </div>
 
+<div class="mw-custom-field-group">
+    <label class="mw-ui-label" for="value<?php print $rand; ?>"><?php _e("Placeholder"); ?></label>
+    <div id="mw-custom-fields-text-holder">
+        <input type="text" class="mw-ui-field mw-full-width" name="placeholder" value="<?php echo $data['placeholder']; ?>" />
+    </div>
+</div>
 
 <div class="custom-field-settings-values">
-
 
     <label class="mw-ui-check">
     <input type="checkbox" class="mw-custom-field-option"

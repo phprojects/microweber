@@ -25,7 +25,7 @@
         mw.require("<?php print mw_includes_url(); ?>api/libs/jquery_slimscroll/jquery.slimscroll.min.js");
 
         mw.require("liveadmin.js");
-        mw.require("jquery-ui.js");
+        mw.lib.require('jqueryui');
         mw.require("<?php print mw_includes_url(); ?>css/wysiwyg.css");
         mw.require("<?php print mw_includes_url(); ?>css/components.css");
         mw.require("<?php print mw_includes_url(); ?>css/admin.css");
@@ -163,6 +163,15 @@ if ($last_page_front != false) {
 
 
 $shop_disabled = get_option('shop_disabled', 'website') == 'y';
+
+if(!$shop_disabled){
+    if(!mw()->modules->is_installed('shop')){
+        $shop_disabled = true;
+    }
+}
+
+
+
 
 
 ?>
@@ -360,6 +369,11 @@ $shop_disabled = get_option('shop_disabled', 'website') == 'y';
                         </a>
                     <?php endif; ?>
                 </div>
+
+                <?php
+                event_trigger('mw.admin.header.toolbar');
+                ?>
+
                 <div class="mw-ui-col">
 
                     <a href="<?php print $past_page ?>?editmode=y" class="mw-admin-go-live-now-btn mw-ui-btn mw-ui-btn-info toolbar-live-edit" target="_blank">
@@ -430,7 +444,7 @@ $shop_disabled = get_option('shop_disabled', 'website') == 'y';
                                     <strong><?php _e("Posts"); ?></strong>
                                     <span class="mw-admin-main-menu-mini tip" data-tip="<?php _e("Add new post") ?>" data-href="<?php print admin_url('view:content#action=new:post'); ?>"><?php _e("Add"); ?></span>
                                 </a></li>
-                            <?php if ($shop_disabled == false AND is_module('shop') == true): ?>
+                            <?php if ($shop_disabled == false AND mw()->modules->is_installed('shop') == true): ?>
                                 <li <?php if ($action == 'products'): ?> class="active" <?php endif; ?>>
                                     <a href="<?php print admin_url(); ?>view:content/action:products">
                                         <span class="mai-product"></span>
@@ -447,7 +461,7 @@ $shop_disabled = get_option('shop_disabled', 'website') == 'y';
                         </ul>
                     </li>
 
-                    <?php if ($shop_disabled == false AND is_module('shop') == true): ?>
+                    <?php if ($shop_disabled == false AND mw()->modules->is_installed('shop') == true): ?>
 
                         <li
                             <?php if ($view == 'shop' and $action == false): ?> class="active"
@@ -536,15 +550,60 @@ $shop_disabled = get_option('shop_disabled', 'website') == 'y';
                             </ul>
                         </li>
                     <?php endif; ?>
+
+
+
+
+
+
                     <li <?php if (
-                            $view == 'modules' AND $load_module != 'users' AND $load_module != 'shop__coupons'
+                          (  $view == 'modules' AND $load_module != 'users' AND $load_module != 'shop__coupons') or $view == 'packages'
                         ): ?> class="active" <?php endif; ?>><a class="item-admin__modules" href="<?php print admin_url(); ?>view:modules">
-                            <span class="mai-modules"></span><strong><?php _e("My Modules"); ?></strong>
+                            <span class="mai-modules"></span><strong><?php _e("Modules"); ?></strong>
                         </a>
+
+
+
+                        <ul class="mw-ui-sidenav">
+                            <li <?php if (
+                                $view == 'modules' AND $load_module != 'users' AND $load_module != 'shop__coupons'
+                            ): ?> class="active" <?php endif; ?>  ><a class="item-admin__modules" href="<?php print admin_url(); ?>view:modules">
+                                    <span class="mai-modules"></span><strong><?php _e("My Modules"); ?></strong>
+                                </a>
+                            </li>
+
+
+
+
+                            <?php if (mw()->ui->disable_marketplace != true): ?>
+                                <li <?php if ($view == 'packages'): ?> class="active" <?php endif; ?>>
+                                    <a href="<?php print admin_url(); ?>view:packages">
+                                        <span class="mai-market"></span> <strong>
+                                            <?php _e("Marketplace"); ?>
+                                        </strong>
+                                    </a>
+                                </li>
+
+                            <?php endif; ?>
+
+
+
+
+                        </ul>
+
                     </li>
 
 
-                    <li <?php if (!url_param('has_core_update') and ($view == 'settings' or $view == 'packages') /*or ($load_module AND $load_module != 'users')*/): ?> class="active" <?php endif; ?>>
+
+
+
+
+
+
+
+
+
+                    <li <?php if (!url_param('has_core_update') and ($view == 'settings' ) /*or ($load_module AND $load_module != 'users')*/): ?> class="active" <?php endif; ?>>
                         <a href="<?php print admin_url(); ?>view:settings#option_group=website"> <span class="mai-setting"></span>
                             <strong>
                                 <?php _e("Settings"); ?>
@@ -573,16 +632,7 @@ $shop_disabled = get_option('shop_disabled', 'website') == 'y';
                             </li>
 
 
-                            <?php if (mw()->ui->disable_marketplace != true): ?>
-                                <li <?php if ($view == 'packages'): ?> class="active" <?php endif; ?>>
-                                    <a href="<?php print admin_url(); ?>view:packages">
-                                        <span class="mai-market"></span> <strong>
-                                            <?php _e("Marketplace"); ?>
-                                        </strong>
-                                    </a>
-                                </li>
 
-                            <?php endif; ?>
 
 
                             <?php event_trigger('mw_admin_settings_menu'); ?>

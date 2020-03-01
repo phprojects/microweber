@@ -42,7 +42,6 @@ class InstallCommand extends Command
 
         */
 
-
         $input = array(
             'db_host' => $this->argument('db_host'),
             'db_name' => $this->argument('db_name'),
@@ -56,7 +55,7 @@ class InstallCommand extends Command
             'with_default_content' => $this->option('default-content'),
             'default_template' => $this->option('template'),
             'config_only' => $this->option('config_only'),
-
+            'site_lang' => $this->option('language'),
         );
         $vals = array_filter($input);
         if (!$vals) {
@@ -132,6 +131,7 @@ class InstallCommand extends Command
             ['template', 't', InputOption::VALUE_OPTIONAL, 'Set default template name'],
             ['default-content', 'd', InputOption::VALUE_OPTIONAL, 'Install default content'],
             ['config_only', 'c', InputOption::VALUE_OPTIONAL, 'Prepare the install'],
+            ['language', 'l', InputOption::VALUE_OPTIONAL, 'Prepare the language install'],
         ];
     }
 }

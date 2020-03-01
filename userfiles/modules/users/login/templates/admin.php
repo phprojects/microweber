@@ -28,7 +28,6 @@ $current_lang = current_lang();
 ?>
 
 <div id="mw-login">
-    <script>mw.require("tools.js");</script>
     <script>mw.require("session.js");</script>
     <script>
 
@@ -64,7 +63,7 @@ $current_lang = current_lang();
     <?php
 
     if (!isset(mw()->ui->admin_logo_login_link) or mw()->ui->admin_logo_login_link == false) {
-        $link = "https://microweber.com";
+        $link = site_url();
 
     } else {
         $link = mw()->ui->admin_logo_login_link;
@@ -170,7 +169,7 @@ $current_lang = current_lang();
     </div>
     <div id="login_foot"><a href="<?php print site_url() ?>" class="pull-left"><span class="mw-icon-back"></span>
             <?php _e("Back to My WebSite"); ?>
-        </a> <a href="javascript:mw.load_module('users/forgot_password', '#admin_login', false, {template:'admin'});" class="mw-ui-link pull-right">
+        </a> <a href="#" onClick="mw.load_module('users/forgot_password', '#admin_login', false, {template:'admin'});" class="mw-ui-link pull-right">
             <?php _e("Forgot my password"); ?>
             ?</a></div>
 <?php endif; ?>

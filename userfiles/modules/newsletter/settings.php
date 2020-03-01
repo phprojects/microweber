@@ -3,7 +3,7 @@
     $(document).ready(function () {
 
         mw.options.form('.<?php print $config['module_class'] ?>', function () {
-            mw.notification.success("<?php _e("Saved"); ?>.");
+            mw.notification.success("<?php _ejs("Saved"); ?>.");
         });
     });
 </script>
@@ -28,13 +28,6 @@ if (isset($params['for_module_id'])) {
     />
     <span></span> <span><?php _e("Enable Code Verification ex"); ?>.:</span> </label>
 <img src="<?php print mw_includes_url(); ?>img/code_verification_example.jpg" class="relative" style="top: 7px;left:10px;" alt=""/>
-
-
-<hr>
-
-<module type="admin/mail_providers/integration_select" option_group="newsletter" />
-
-
 
 <hr>
 <label class="mw-ui-label"><?php _e("Redirect to URL after submit"); ?></label>

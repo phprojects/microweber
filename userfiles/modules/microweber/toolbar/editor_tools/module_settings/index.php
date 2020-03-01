@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html>
+<html <?php print lang_attributes(); ?>>
 <head>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <?php $module_info = false;
@@ -31,7 +31,7 @@
     template_stack_add(mw_includes_url() . 'api/instruments.js');
     template_stack_add(mw_includes_url() . 'api/events.js');
     template_stack_add(mw_includes_url() . 'api/url.js');
-    template_stack_add(mw_includes_url() . 'api/tools.js');
+
     template_stack_add(mw_includes_url() . 'api/admin.js');
     template_stack_add(mw_includes_url() . 'api/dialog.js');
     template_stack_add(mw_includes_url() . 'api/liveadmin.js');
@@ -53,29 +53,6 @@
 
     <script type="text/javascript">
         liveEditSettings = true;
-        /*
-         mw.require('<?php print mw_includes_url(); ?>default.css');
-         mw.require('<?php print mw_includes_url(); ?>css/components.css');
-         mw.require('<?php print mw_includes_url(); ?>css/admin.css');
-         mw.require('<?php print mw_includes_url(); ?>css/admin-new.css');
-         mw.require('<?php print mw_includes_url(); ?>css/fade-window.css');
-         mw.require('<?php print mw_includes_url(); ?>css/popup.css');
-
-
-
-
-         mw.require("events.js");
-         mw.require("url.js");
-         mw.require("tools.js");
-         mw.require('admin.js');
-         mw.require('dialog.js');
-
-
-         mw.require("liveadmin.js");
-         mw.require("forms.js");
-         mw.require('wysiwyg.js');
-         mw.require("wysiwyg.css")
-         mw.require('options.js');    */
 
         <?php if(_lang_is_rtl()){ ?>
         mw.require('<?php print mw_includes_url(); ?>css/rtl.css');
@@ -139,7 +116,9 @@
             if (window.thismodal && thismodal.main) {
                 var holder = $(".mw_modal_toolbar", thismodal.main);
                 if ($('.mw_modal_icon', holder).length === 0) {
+                    <?php if(is_array($module_info) and isset($module_info['icon'])) :  ?>
                     holder.prepend('<span class="mw_modal_icon"><img src="<?php print $module_info['icon']; ?>"></span>')
+                    <?php endif; ?>
                 }
             }
         };
@@ -180,7 +159,7 @@
         if (typeof thismodal != 'undefined' && thismodal != false) {
             var modal_title_str = '';
             if (typeof(mw_module_settings_info.name) == "undefined") {
-                modal_title_str = "<?php _e("Settings"); ?>"
+                modal_title_str = "<?php _ejs("Settings"); ?>"
             } else {
                 modal_title_str = mw_module_settings_info.name;
             }
@@ -436,7 +415,7 @@
             var settings_container_mod_el = $('#settings-container');
             mw.options.form(settings_container_mod_el, function () {
                 if (mw.notification) {
-                    mw.notification.success('<?php _e('Settings are saved') ?>');
+                    mw.notification.success('<?php _ejs('Settings are saved') ?>');
                 }
                 mw.reload_module_parent('#<?php print $params['id']  ?>')
 
@@ -516,6 +495,5 @@
 
 
 </script>
-
 </body>
 </html>

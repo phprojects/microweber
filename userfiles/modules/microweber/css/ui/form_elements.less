@@ -66,6 +66,14 @@ select.mw-ui-invisible-field {
   box-sizing: border-box;
   box-shadow: inset 0 0 3px rgba(0, 0, 0, .2);
   transition: border-color .3s, box-shadow, .3s;
+    &[type='range']{
+        box-shadow: none;
+        cursor: grab;
+        &:focus{
+            cursor: grabbing;
+            box-shadow: none;
+        }
+    }
 }
 
 div.mw-ui-field,
@@ -366,6 +374,7 @@ div.mw-ui-field:after {
         content: "\0101";
         color: @info;
         text-align: center;
+          font-size: 13px;
       }
     }
   }
@@ -412,6 +421,7 @@ div.mw-ui-field:after {
   -webkit-appearance: none;
   margin: 10px 0;
   width: 100%;
+    background-color: transparent;
 }
 
 .range-slider input[type=range]:focus {
@@ -446,7 +456,7 @@ div.mw-ui-field:after {
 
 .range-slider input[type=range]::-moz-range-track {
   width: 100%;
-  height: 12.8px;
+  height: 3px;
   cursor: pointer;
   transition: 0.2s;
   box-shadow: 0px 0px 0px #000000, 0px 0px 0px #0d0d0d;
@@ -467,7 +477,7 @@ div.mw-ui-field:after {
 
 .range-slider input[type=range]::-ms-track {
   width: 100%;
-  height: 12.8px;
+  height: 3px;
   cursor: pointer;
   transition: 0.2s;
   background: transparent;
@@ -580,8 +590,28 @@ div.mw-ui-field:after {
             box-shadow: inset 0 0 3px rgba(0, 134, 219, .4);
             -webkit-box-shadow: inset 0 0 3px rgba(0, 134, 219, .4);
         }
+        &[type='range']{
+            box-shadow: none;
+            cursor: grab;
+            &:focus{
+                cursor: grabbing;
+                box-shadow: none;
+            }
+        }
     }
 
+    .mw-field-prepend{
+        & + input{
+            border-radius: 0 @radius @radius 0;
+        }
+    }
+
+    .mw-field-append,
+    .mw-field-prepend{
+        [class*="mw-icon-"]{
+            font-size: 1.4rem;
+        }
+    }
 
     .mw-field-append,
     .mw-field-prepend,
@@ -589,6 +619,7 @@ div.mw-ui-field:after {
     &[data-after]:after{
         display: block;
         white-space: nowrap;
+
     }
     [class="mw-field-append"],
     [class="mw-field-prepend"],

@@ -116,6 +116,11 @@ class DatabaseManager extends DbUtils
             return false;
         }
 
+        $enable_trigers = true;
+        if (isset($params['enable_trigers'])) {
+            $enable_trigers = $params['enable_trigers'];
+        }
+
         $use_connection = false;
 
         if (isset($params['connection_name']) and !isset($_REQUEST['connection_name'])) {
@@ -138,7 +143,7 @@ class DatabaseManager extends DbUtils
             $do_not_replace_site_url = $params['do_not_replace_site_url'];
         }
 
-$limit =  $this->default_limit;
+        $limit = $this->default_limit;
         if (!isset($params['limit'])) {
             $limit = $params['limit'] = $this->default_limit;
         } else {
@@ -206,7 +211,7 @@ $limit =  $this->default_limit;
         $ttl = $this->table_cache_ttl;
 
 
-        if(!$query){
+        if (!$query) {
             return;
         }
 
@@ -220,7 +225,7 @@ $limit =  $this->default_limit;
         }
 
         if (!isset($params['no_limit'])) {
-            $cache_key = $table . crc32(json_encode($orig_params) .$limit. $this->default_limit . $cache_key_closures);
+            $cache_key = $table . crc32(json_encode($orig_params) . $limit . $this->default_limit . $cache_key_closures);
         } else {
             $cache_key = $table . crc32(json_encode($params) . $cache_key_closures);
         }
@@ -231,9 +236,6 @@ $limit =  $this->default_limit;
                 $query = $query->where($table . '.' . $k, '=', $v);
             }
         }
-
-
-
 
         if (isset($orig_params['count']) and ($orig_params['count'])) {
             if ($use_cache == false) {
@@ -318,8 +320,11 @@ $limit =  $this->default_limit;
 
 
         if (!is_array($data)) {
-
             return $data;
+        }
+
+        if ($enable_trigers) {
+            $data = $this->app->event_manager->response('mw.database.' . $table . '.get', $data);
         }
 
         if (isset($orig_params['single']) || isset($orig_params['one'])) {
@@ -380,7 +385,7 @@ $limit =  $this->default_limit;
 
         $skip_cache = isset($original_data['skip_cache']);
 
-        if (!isset($params['skip_timestamps'])) {
+        /*if (!isset($params['skip_timestamps'])) {
             if (!isset($params['id']) or (isset($params['id']) and $params['id'] == 0)) {
                 if (!isset($params['created_at'])) {
                     $params['created_at'] = date('Y-m-d H:i:s');
@@ -389,7 +394,7 @@ $limit =  $this->default_limit;
             if (!isset($params['updated_at'])) {
                 $params['updated_at'] = date('Y-m-d H:i:s');
             }
-        }
+        }*/
 
         if ($is_quick == false) {
             if (isset($data['updated_at']) == false) {
@@ -490,7 +495,7 @@ $limit =  $this->default_limit;
 
         $criteria = $this->app->url_manager->replace_site_url($criteria);
 
-        if ($data_to_save_options['use_this_field_for_id'] != false) {
+        if (is_array($data_to_save_options) and $data_to_save_options['use_this_field_for_id'] != false) {
             $criteria['id'] = $criteria_orig[$data_to_save_options['use_this_field_for_id']];
         }
 
@@ -499,8 +504,11 @@ $limit =  $this->default_limit;
         if (!isset($criteria['id'])) {
             $criteria['id'] = 0;
         }
-
         $criteria['id'] = intval($criteria['id']);
+
+        $criteria = $criteria_overwrite = $this->app->event_manager->response('mw.database.' . $table . '.save.params', $criteria);
+        $criteria = $this->map_array_to_table($table, $criteria);
+
         if (intval($criteria['id']) == 0) {
             unset($criteria['id']);
             $engine = $this->get_sql_engine();
@@ -549,6 +557,9 @@ $limit =  $this->default_limit;
                 $this->app->cache_manager->delete($cache_group . '/' . intval($criteria['parent_id']));
             }
         }
+
+        $criteria_overwrite['id'] = $id_to_return;
+        $this->app->event_manager->trigger('mw.database.'.$table.'.save.after', $criteria_overwrite);
 
         return $id_to_return;
     }

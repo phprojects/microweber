@@ -7,14 +7,14 @@
 
         <div class="mw-ui-row m-b-20">
             <div class="mw-ui-col text-left" style="width: 445px;">
-                <a href='javascript:mw.quick_cat_edit_create(0)' class="mw-ui-btn mw-ui-btn-outline mw-ui-btn-info"><i class="mw-icon-plus"></i>&nbsp; <?php _e("New category"); ?></a>
+                <a href="#" onclick="mw.quick_cat_edit_create(0);" class="mw-ui-btn mw-ui-btn-outline mw-ui-btn-info"><i class="mw-icon-plus"></i>&nbsp; <?php _e("New category"); ?></a>
             </div>
         </div>
 
         <div>
             <div class="mw-searchbox">
                 <div class="mw-sb-item">
-                    <div class="mw-sb-item-input"><input type="text" class="mw-ui-field" placeholder="Search" oninput="categorySearch(this)"/></div>
+                    <div class="mw-sb-item-input"><input type="text" class="mw-ui-field" placeholder="<?php _e("Search"); ?>" oninput="categorySearch(this)"/></div>
                 </div>
             </div>
 

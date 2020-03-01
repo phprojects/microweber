@@ -17,7 +17,7 @@ function save_white_label_config($params)
 
     $params = json_encode($params);
 
-    if(!is_writable($file)){
+    if (!is_writable($file)) {
         $file = $file_local;
     }
 
@@ -39,8 +39,7 @@ function get_white_label_config()
     }
 }
 
-event_bind('mw_frontend', 'make_white_label');
-event_bind('mw_backend', 'make_white_label');
+event_bind('mw.init', 'make_white_label');
 
 function make_white_label()
 {
@@ -107,5 +106,10 @@ function make_white_label()
     if (isset($settings['custom_support_url']) and trim($settings['custom_support_url']) != '') {
         mw()->ui->custom_support_url = $settings['custom_support_url'];
     }
+
+    if (isset($settings['marketplace_repositories_urls']) and ($settings['marketplace_repositories_urls'])) {
+        mw()->ui->package_manager_urls = $settings['marketplace_repositories_urls'];
+    }
+
 }
 

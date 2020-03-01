@@ -1,16 +1,49 @@
 mw.components = {
     _rangeOnce: false,
     'range': function(el){
+        mw.lib.require('jqueryui');
         var options = this._options(el);
         var defaults = {
-            range: 'min'
+            range: 'min',
+            animate: "fast"
         };
-        var settings = $.extend({}, defaults, options);
-        mw.$(el)
+        var ex = {}, render = el;
+        if(el.nodeName === 'INPUT'){
+            el._pauseChange = false;
+            el.type = 'text';
+            render = document.createElement('div');
+            $(el).removeClass('mw-range');
+            $(render).addClass('mw-range');
+            $(el).after(render);
+            ex = {
+                slide: function( event, ui ) {
+                    el._pauseChange = true;
+                   $(el).val(ui.value).trigger('change').trigger('input');
+                    setTimeout(function () {
+                        el._pauseChange = false;
+                    }, 78);
+                }
+            };
+
+        }
+        var settings = $.extend({}, defaults, options, ex);
+        if(el.min){
+            settings.min = parseFloat(el.min);
+        }
+        if(el.max){
+            settings.max = parseFloat(el.max);
+        }
+        if(el.value){
+            settings.value = parseFloat(el.value);
+        }
+        mw.$(render)
             .slider(settings)
             .on('mousedown touchstart', function(){
                 mw.$(this).addClass('active');
             });
+        $(el).on('input', function(){
+            mw.$(render).slider( "value", this.value );
+        });
         if(!mw.components._rangeOnce) {
             mw.components._rangeOnce = true;
             mw.$(document.body).on('mouseup touchend', function(){
@@ -197,12 +230,13 @@ mw.components = {
                 });
             }
         });
-        el.trigger("postSearchReady")
+        el.trigger("postSearchReady");
     },
     _options: function (el) {
-        return mw.tools.elementOptions(el)
+        return mw.tools.elementOptions(el);
     },
     _init: function () {
+        mw.$('.mw-field input[type="range"]').addClass('mw-range');
         mw.$('[data-mwcomponent]').each(function () {
             var component = mw.$(this).attr("data-mwcomponent");
             if (mw.components[component]) {
@@ -212,7 +246,7 @@ mw.components = {
         });
         $.each(this, function(key){
             if(key.indexOf('_') === -1){
-                mw.$('.mw-'+key+', '+key).not(".mw-component-ready").each(function () {
+                mw.$('.mw-'+key+', mw-'+key).not(".mw-component-ready").each(function () {
                     mw.$(this).addClass('mw-component-ready');
                     mw.components[key](this);
                 });
@@ -229,9 +263,15 @@ $(window).on('load', function () {
     mw.components._init();
 });
 
-mw.on('ComponentsLaunch', function () {
-    mw.components._init();
-});
+    mw.on('ComponentsLaunch', function () {
+        mw.components._init();
+    });
+
+    mw.on('mwDialogShow', function () {
+        setTimeout(function () {
+            mw.components._init();
+        }, 110);
+    });
 
 $(window).on('ajaxStop', function () {
     setTimeout(function () {

@@ -8,7 +8,7 @@ $pages_count = intval($pages);
 </script>
 <script type="text/javascript">
     delete_selected_posts = function () {
-        mw.tools.confirm("<?php _e("Are you sure you want to delete the selected posts"); ?>?", function () {
+        mw.tools.confirm("<?php _ejs("Are you sure you want to delete the selected posts"); ?>?", function () {
             var master = mwd.getElementById('<?php print $params['id']; ?>');
             var arr = mw.check.collectChecked(master);
             mw.post.del(arr, function () {
@@ -82,7 +82,7 @@ $pages_count = intval($pages);
     };
 
     mw.delete_single_post = function (id) {
-        mw.tools.confirm("<?php _e("Do you want to delete this post"); ?>?", function () {
+        mw.tools.confirm("<?php _ejs("Do you want to delete this post"); ?>?", function () {
             var arr = id;
             mw.post.del(arr, function () {
                 mw.$(".manage-post-item-" + id).fadeOut(function () {
@@ -244,21 +244,23 @@ $pages_count = intval($pages);
 
 
                                     <?php $cats = content_categories($item['id']); ?>
-
+                                    <?php $tags = content_tags($item['id'], true); ?>
                                     <?php if ($cats) { ?>
                                         <span class="manage-post-item-cats-inline-list">
                                               <span class="mw-icon-category"></span>
                                             <?php foreach ($cats as $ck => $cat): ?>
-                                                <a href="#action=showpostscat:<?php print ($cat['id']); ?>" class=" label label-primary">
+                                            <a href="#action=showpostscat:<?php print ($cat['id']); ?>" class=" label label-primary">
+                                                <?php print $cat['title']; ?></a><?php if (isset($cats[$ck + 1])): ?>,<?php endif; ?>
 
 
-
-
-                                                    <?php print $cat['title']; ?></a><?php if (isset($cats[$ck + 1])): ?>,<?php endif; ?>
                                             <?php endforeach; ?>
                                       </span>
                                         <br />
                                     <?php } ?>
+                                     <?php if ($tags) { ?>
+
+
+                                      <?php } ?>
 
                                     <a class="manage-post-item-link-small mw-medium" target="_top" href="<?php print content_link($item['id']); ?>?editmode:y"><?php print content_link($item['id']); ?></a>
                                 </div>

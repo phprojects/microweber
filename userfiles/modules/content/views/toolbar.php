@@ -153,18 +153,19 @@ if ($last_page_front != false) {
                 <?php mw()->event_manager->trigger('module.content.manager.toolbar.start', $page_info) ?>
 
                 <?php
+                $type = 'page';
 
-
-                if ($page_info['is_shop'] == 1) {
-                    $type = 'shop';
-                } elseif ($page_info['subtype'] == 'dynamic') {
-                    $type = 'dynamicpage';
-                } else if (isset($page_info ['layout_file']) and stristr($page_info ['layout_file'], 'blog')) {
-                    $type .= 'blog';
-                } else {
-                    $type = 'page';
+                if(is_array($page_info)){
+                    if ($page_info['is_shop'] == 1) {
+                        $type = 'shop';
+                    } elseif ($page_info['subtype'] == 'dynamic') {
+                        $type = 'dynamicpage';
+                    } else if (isset($page_info ['layout_file']) and stristr($page_info ['layout_file'], 'blog')) {
+                        $type .= 'blog';
+                    } else {
+                        $type = 'page';
+                    }
                 }
-
                 ?>
                 <div class="section-header-fixer">
                     <div class="section-header">
@@ -405,7 +406,7 @@ if ($last_page_front != false) {
                             <label class="mw-ui-check" id="posts-check">
                                 <input type="checkbox">
                                 <span></span>
-                                <span>Check all</span>
+                                <span><?php _e("Check all"); ?></span>
                             </label>
 
 

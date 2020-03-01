@@ -42,12 +42,26 @@ $(document).ready(function(){
 
 });
 
+function mw_export_shop_order(pid, iscart, e) {
+
+    if (e) e.preventDefault();
+
+    data = {'id':pid};
+    $.post(mw.settings.api_url + 'shop/export_orders', data,
+    function (resp) {
+        mw.notification.msg(resp);
+        if (resp.download != undefined) {
+            window.location = resp.download;
+        }
+    });
+
+}
+
 function mw_delete_shop_order(pid, iscart, e){
     if(e)e.preventDefault();
-     var iscart = iscart || false;
+    var iscart = iscart || false;
 
-
-    var r = confirm("<?php _e("Are you sure you want to delete this order"); ?>?");
+    var r = confirm("<?php _ejs("Are you sure you want to delete this order"); ?>?");
     if (r == true) {
 
         $.post("<?php print api_url('delete_order') ?>", { id: pid,is_cart:iscart}, function(data) {
@@ -58,8 +72,6 @@ function mw_delete_shop_order(pid, iscart, e){
         return true;
 
     }
-
-
 }
 </script>
 <?php  mw()->notifications_manager->mark_as_read('shop');  ?>

@@ -15,6 +15,15 @@ if (get_option('icon', $params['id'])) {
     $icon = '';
 }
 
+if (isset($params['button_id'])) {
+    $btn_id = $params['button_id'];
+}
+
+$attributes = '';
+if (isset($params['button_onclick'])) {
+    $attributes .= 'onclick="'.$params['button_onclick'].'"';
+}
+
 if (isset($params['button_text']) && !empty($params['button_text']) && empty($text)) {
 	$text = $params['button_text'];
 }
@@ -42,12 +51,8 @@ if ($style == '') {
     $style = 'btn-default';
 }
 
-if (isset($params['button_style']) && !empty($params['button_style'])) {
-	$style = $params['button_style'];
-}
-
-if (isset($params['button_action']) && !empty($params['button_action'])) {
-	$action = $params['button_action'];
+if ($action == false and isset($params['button_action'])) {
+    $action = $params['button_action'];
 }
 
 if ($size == false and isset($params['button_size'])) {

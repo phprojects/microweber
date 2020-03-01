@@ -494,7 +494,7 @@ class CheckoutManager
             ob_start();
         }
         if ($order_id == false or trim($order_id) == '') {
-            return array('error' => 'Invalid order ID');
+            return array('error' => _e('Invalid order ID'));
         }
 
         $ord_data = $this->app->shop_manager->get_orders('one=1&id=' . $order_id);
@@ -505,9 +505,9 @@ class CheckoutManager
             $notification['module'] = 'shop';
             $notification['rel_type'] = 'cart_orders';
             $notification['rel_id'] = $ord;
-            $notification['title'] = 'You have new order';
-            $notification['description'] = 'New order is placed from ' . $this->app->url_manager->current(1);
-            $notification['content'] = 'New order in the online shop. Order id: ' . $ord;
+            $notification['title'] = _e('You have new order', true);
+            $notification['description'] = _e('New order is placed from ', true) . $this->app->url_manager->current(1);
+            $notification['content'] = _e('New order in the online shop. Order id: ', true) . $ord;
             $this->app->notifications_manager->save($notification);
             $this->app->log_manager->save($notification);
             $this->confirm_email_send($order_id);
@@ -522,14 +522,28 @@ class CheckoutManager
         $ord_data = $this->app->shop_manager->get_order_by_id($order_id);
 
         if (is_array($ord_data)) {
+
             if ($skip_enabled_check == false) {
                 $order_email_enabled = $this->app->option_manager->get('order_email_enabled', 'orders');
             } else {
                 $order_email_enabled = $skip_enabled_check;
             }
 
+            $send_to_client = true;
+            $send_to_admins = true;
+            $send_to_client_option = $this->app->option_manager->get('send_email_on_new_order', 'orders');
+            if (!empty($send_to_client_option)) {
+                if ($send_to_client_option == 'admins') {
+                    $send_to_admins = true;
+                    $send_to_client = false;
+                }
+                if ($send_to_client_option == 'client') {
+                    $send_to_admins = false;
+                    $send_to_client = true;
+                }
+            }
 
-            if ($order_email_enabled == true) {
+            if ($order_email_enabled) {
 
                //  $order_email_subject = $this->app->option_manager->get('order_email_subject', 'orders');
                 // $order_email_content = $this->app->option_manager->get('order_email_content', 'orders');
@@ -548,10 +562,26 @@ class CheckoutManager
                     return;
                 }
 
+                $order_email_cc_string = $mail_template['copy_to'];
                 $order_email_subject = $mail_template['subject'];
                 $order_email_content = $mail_template['message'];
 
-                $order_email_cc = $this->app->option_manager->get('order_email_cc', 'orders');
+                $order_email_cc = array();
+                if (!empty($order_email_cc_string) && strpos($order_email_cc_string, ',')) {
+                    $order_email_cc = explode(',', $order_email_cc_string);
+                } else {
+                    $order_email_cc[] = $order_email_cc_string;
+                }
+
+                if (empty($order_email_cc)) {
+                    $admins = get_users('is_admin=1');
+                    foreach ($admins as $admin) {
+                        if (isset($admin['email']) && !empty($admin['email']) && filter_var($admin['email'], FILTER_VALIDATE_EMAIL)) {
+                            $order_email_cc[] = $admin['email'];
+                        }
+                    }
+                }
+
                 $order_email_send_when = $this->app->option_manager->get('order_email_send_when', 'orders');
                 if ($order_email_send_when == 'order_paid' and !$skip_enabled_check) {
                     if (isset($ord_data['is_paid']) and $ord_data['is_paid'] == false) {
@@ -632,16 +662,34 @@ class CheckoutManager
                         )
                     );
 
-                    if (isset($to) and (filter_var($to, FILTER_VALIDATE_EMAIL))) {
-                        $sender = new \Microweber\Utils\MailSender();
+                    $sender = new \Microweber\Utils\MailSender();
+                    
+                    // Send only to client
+                    if ($send_to_client && !$send_to_admins && filter_var($to, FILTER_VALIDATE_EMAIL)) {
                         $sender->send($to, $order_email_subject, $order_email_content);
-                        $cc = false;
-                        if (isset($order_email_cc) and (filter_var($order_email_cc, FILTER_VALIDATE_EMAIL))) {
-                            $cc = $order_email_cc;
-                            $sender->send($cc, $order_email_subject, $order_email_content, false, $no_cache);
-                        }
+                        // echo 'Send only to client.';
+                    }
 
-                        return true;
+                    // Send only to admins
+                    if (!$send_to_client && $send_to_admins && is_array($order_email_cc)) {
+                        // echo 'Send only to admins.';
+                        foreach ($order_email_cc as $admin_email) {
+                            $sender->send($admin_email, $order_email_subject, $order_email_content, false, $no_cache);
+                        }
+                    }
+
+                    // Send to admins and client
+                    if ($send_to_client && $send_to_admins) {
+                        if (filter_var($to, FILTER_VALIDATE_EMAIL)) {
+                            $sender->send($to, $order_email_subject, $order_email_content);
+                            // echo 'Send to client.';
+                        }
+                        if (is_array($order_email_cc)) {
+                            // echo 'Send to admins.';
+                            foreach ($order_email_cc as $admin_email) {
+                                $sender->send($admin_email, $order_email_subject, $order_email_content, false, $no_cache);
+                            }
+                        }
                     }
                 }
             }

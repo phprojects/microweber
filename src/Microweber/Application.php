@@ -14,6 +14,7 @@ namespace Microweber;
  * @property \Microweber\Utils\Format                            $format
  * @property \Microweber\Providers\ContentManager                $content_manager
  * @property \Microweber\Providers\CategoryManager               $category_manager
+ * @property \Microweber\Providers\MenuManager                   $menu_manager
  * @property \Microweber\Providers\MediaManager                  $media_manager
  * @property \Microweber\Providers\ShopManager                   $shop_manager
  * @property \Microweber\Providers\Shop\CartManager              $cart_manager
@@ -37,6 +38,7 @@ namespace Microweber;
  * @property \Microweber\Providers\TemplateManager               $template_manager
  * @property \Microweber\Providers\Ui                            $ui
  * @property \Microweber\Utils\Captcha                           $captcha
+ * @property \Microweber\Utils\Http                              $http
  * @property \Microweber\Providers\FormsManager                  $forms_manager
  * @property \Microweber\Providers\Content\DataFieldsManager     $data_fields_manager
  * @property \Microweber\Providers\Content\TagsManager           $tags_manager

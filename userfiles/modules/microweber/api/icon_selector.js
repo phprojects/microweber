@@ -1,4 +1,543 @@
 
+mw.top()._icons = mw.top()._icons || [];
+
+(function () {
+    var icons = {
+        findByIcon: function (name) {
+            return  mw.top()._icons.some(function (font) {
+                return font.icons.some(function (icon) {
+                    return icon === name;
+                });
+            });
+        },
+        findByName: function (name) {
+            return  mw.top()._icons.some(function (font) {
+                return font.name === name;
+            });
+        },
+        availableIcons: function () {
+            for (var i = 0; i < mw.top()._icons.length; i++) {
+                var set = mw.top()._icons[i];
+                if (set.url) {
+                    mw.moduleCSS(url);
+                }
+            }
+        },
+        cleanIcon: function (node) {
+            for (var i = 0; i < mw.top()._icons.length; i++) {
+                var set = mw.top()._icons[i];
+                if (set.remove) {
+                    set.remove(node);
+                }
+            }
+        },
+        addFontIcons: function (options) {
+            if(!options) return;
+            if(!options.icons) return;
+            if(!options.name) return;
+            if(!options.render) return;
+            if(!options.remove) return;
+            if(options.url) {
+                mw.moduleCSS(options.url);
+            }
+            options.exists = options.exists || function() {
+                return  mw.top()._icons.some(function (font) {
+                    return font.name === options.name;
+                });
+            };
+            if(options.exists()) return;
+            var toAdd = {
+                render: function (icon, target) {
+                    mw.icons.cleanIcon(target);
+                    return options.render(icon, target);
+                },
+                remove: options.remove,
+                icons: options.icons,
+                name: options.name
+            };
+            mw.top()._icons = mw.top()._icons.concat(toAdd);
+            mw._iconsCache = false;
+        },
+        searchGUI: function (list) {
+            var scope = this;
+            var nav = document.createElement('div');
+            nav.className = 'mw-ui-btn-nav';
+            nav.innerHTML = ''
+                /*+ '<div class="mw-dropdown mw-dropdown-default">'
+                    + '<span class="mw-dropdown-value mw-ui-btn mw-dropdown-val">All</span>'
+                    + '<div class="mw-dropdown-content">'
+                        + '<ul></ul>'
+                    + '</div>'
+                + '</div>'*/;
+            var ul = $('ul', list);
+            $.each(mw._icons, function(){
+               var li = document.createElement('li');
+               li.value = this.name;
+               li.innerHTML = this.name;
+                ul.append(li);
+            });
+            var input =  document.createElement('input');
+            input.type = 'mw-text';
+            input.className = 'mw-ui-field';
+            input.placeholder = 'Filter icons...';
+
+            nav.append(input);
+            input.oninput = function(){
+                scope.search(this.value, list);
+            };
+            return nav;
+        },
+        _search: function (list, term) {
+            term = (term || '').trim().toLowerCase();
+            var all = list.querySelectorAll('.mw-icon-list-icon'), i = 0;
+            if(!term) {
+                for (  ; i<all.length; i++) {
+                    mw.tools.removeClass(all[i], 'mw-icon-list-icon-hidden');
+                }
+                return;
+            }
+            for (  ; i<all.length; i++) {
+                var has = all[i]._searchvalue.indexOf(term) !== -1;
+                mw.tools[has ? 'removeClass' : 'addClass'](all[i], 'mw-icon-list-icon-hidden');
+            }
+        },
+        search: function (term, list) {
+            mw.$('.mw-icon-list-section', list).each(function () {
+                icons.setRender(this._iconSet, this, 1, term) ;
+            });
+        },
+        createPaging:function(perPage, length, page){
+            page = page || 1;
+            var max = 999;
+            var pages = Math.min(Math.ceil(length/perPage), max);
+            var paging = document.createElement('div');
+            paging.className = 'mw-paging mw-paging-small';
+            if(perPage >= length ) {
+                return paging;
+            }
+            var active = false;
+            for ( var i = 1; i <= pages; i++) {
+                var el = document.createElement('a');
+                el.innerHTML = i;
+                el._value = i;
+                if(page === i) {
+                    el.className = 'active';
+                    active = i;
+                }
+                paging.appendChild(el);
+            }
+            var all = paging.querySelectorAll('a');
+            for (var i = active - 3; i < active + 2; i++){
+                if(all[i]) {
+                    all[i].className += ' mw-paging-visible-range';
+                }
+            }
+
+
+            if(active < pages) {
+                var next = document.createElement('a');
+                next.innerHTML = '&raquo;';
+                next._value = active+1;
+                next.className = 'mw-paging-visible-range mw-paging-next';
+                next.innerHTML = '&raquo;';
+                $(paging).append(next)
+            }
+            if(active > 1) {
+                var prev = document.createElement('a');
+                prev.className = 'mw-paging-visible-range mw-paging-prev';
+                prev.innerHTML = '&laquo;';
+                prev._value = active-1;
+                $(paging).prepend(prev);
+            }
+
+            return paging;
+        },
+        setRender: function(set, section, page, search){
+            var perPage = 70;
+            page = page || 1;
+            search = (search || '').trim().toLowerCase();
+            $(section).empty( );
+            var off = perPage * (page - 1);
+            var icons = set.icons;
+            if(search) {
+                icons = set.icons.filter(function (icon) {
+                    return icon.toLowerCase().indexOf(search) !== -1;
+                });
+            }
+            var to = off + Math.min(icons.length - off, perPage);
+            for ( var i = off; i < to; i++ ) {
+                var icon = document.createElement('span');
+                var iconc = document.createElement('span');
+                icon.className = 'mw-icon-list-icon mw-icon-list-' + set.name;
+                icon._searchvalue = icons[i].toLowerCase();
+                icon._value = [icons[i], set.render, icon];
+                icon.appendChild(iconc);
+                icon.onclick = function () {
+                    $(section.parentNode).trigger('_$select', this._value);
+                };
+                set.render(icons[i], iconc);
+                section.appendChild(icon);
+            }
+            var pg = this.createPaging(perPage, icons.length, page);
+            section.appendChild(pg);
+            var scope = this;
+            mw.$('a', pg).on('click', function () {
+                scope.setRender(set, section, this._value, search);
+            });
+        },
+        list: function (options) {
+            options = options || {};
+            var defaults = {
+                showAll: false
+            };
+            var settings = $.extend({}, defaults, options);
+            var list = document.createElement('div');
+            list.className = 'mw-icon-list';
+            list.appendChild(this.searchGUI(list));
+            var fragment = document.createDocumentFragment();
+
+            var select;
+            var containers = [];
+            if (!settings.showAll) {
+                var selectHolder = document.createElement('div');
+                selectHolder.className = 'mw-ui-btn-nav';
+
+                var prev = $('<span class="mw-ui-btn"><span class="mw-icon-arrowleft"></span></span>');
+                var next = $('<span class="mw-ui-btn"><span class="mw-icon-arrowright"></span></span>');
+
+                select = document.createElement('select');
+                select.className = 'mw-ui-field';
+                (function (containers) {
+                    $(select).on('change', function () {
+                        var curr = this.options[this.options.selectedIndex]._for;
+                        $(containers).hide().filter(curr).show();
+                    });
+                })(containers);
+
+                prev.on('click', function () {
+                    select.selectedIndex = select.options.selectedIndex >= 1 ? select.options.selectedIndex - 1 : select.options.length - 1;
+                    $(select).trigger('change')
+                });
+                next.on('click', function () {
+                    select.selectedIndex = select.options.selectedIndex <  select.options.length - 1 ? select.options.selectedIndex + 1 : 0;
+                    $(select).trigger('change')
+                });
+
+                $(selectHolder)
+                    .append(prev)
+                    .append(select)
+                    .append(next);
+            }
+
+
+
+            var i, ic, ticons = mw.top()._icons;
+            for( i = 0; i < ticons.length; i++ ){
+                var set = ticons[i];
+                var title = document.createElement('h5');
+                var section = document.createElement('div');
+                var wrapper = document.createElement('div');
+                containers.push(wrapper)
+                wrapper.className = 'mw-icon-list-section-wrapper';
+                wrapper.style.display = i === 0 ? 'block' : 'none';
+                section.className = 'mw-icon-list-section';
+                section._iconSet = set;
+                title.innerHTML = set.name;
+                wrapper.appendChild(title);
+                this.setRender(set, section);
+                wrapper.appendChild(section);
+                if (!settings.showAll) {
+                    var option = document.createElement('option');
+                    option.innerHTML = set.name;
+                    option._for = wrapper;
+                    select.appendChild(option);
+                }
+
+                fragment.appendChild(wrapper);
+            }
+            list.appendChild(selectHolder);
+            list.appendChild(fragment);
+            return list;
+        },
+
+
+        listOptions: function ( options ) {
+            var def = {
+                color: true,
+                size: true
+            };
+
+            var holder = function () {
+                var holder = document.createElement('div');
+                holder.className = 'mw-icon-list-settings-section-block-item';
+                return holder;
+            };
+
+            options = typeof options === 'undefined' ? def : options;
+            if(!options) {
+                return;
+            }
+            var final = {
+              $e: $({})
+            };
+            if(options === true) {
+                options = def;
+            }
+            if(mw.tools.isEmptyObject(options)){ return; }
+            var accordion = document.createElement('div');
+            accordion.className = 'mw-tab-accordion';
+
+            var content = '' +
+                    '<div class="mw-accordion-item">' +
+                        '<div class="mw-ui-box-header mw-accordion-title">Icons</div>' +
+                        '<div class="mw-accordion-content mw-ui-box mw-ui-box-content mw-icon-list-settings-icons"></div>'+
+                    '</div>' +
+                    '<div class="mw-accordion-item">' +
+                        ' <div class="mw-ui-box-header mw-accordion-title">' +
+                        ' Settings' +
+                        ' </div>' +
+                        ' <div class="mw-accordion-content mw-ui-box mw-ui-box-content mw-icon-list-settings-section"></div>' +
+                    '</div>';
+
+            accordion.innerHTML = content;
+            var root = mw.$('.mw-icon-list-settings-section', accordion);
+            if(options.size) {
+                var size = document.createElement('div');
+                size.className = 'mw-field';
+                size.dataset.before = 'Icon size';
+                var cpinput = document.createElement('input');
+                cpinput.type = 'number';
+                cpinput.min = '8';
+                cpinput.placeholder = 'e.g.: 16';
+                size.appendChild(cpinput);
+                cpinput.oninput = function (ev) {
+                    final.$e.trigger('sizeChange', [parseFloat(this.value), this.value]);
+                };
+                var hsize = holder();
+                hsize.appendChild(size);
+                root.append(hsize);
+            }
+            if(options.color) {
+                var cp = document.createElement('div');
+                cp.className = 'mw-icon-list-settings-section-color-picker';
+                final.colorPicker = mw.colorPicker({
+                    element:cp,
+                    position:'bottom-center',
+                    method:'inline',
+                    onchange:function(color){
+                        final.$e.trigger('colorChange', [color]);
+                    }
+                });
+
+                var hcolor = holder();
+                hcolor.appendChild(cp);
+                root.append(hcolor);
+            }
+
+            final.element = accordion;
+            return final;
+
+        },
+
+        dialog: function (iconsSettings) {
+            var list = this.list();
+            var content = list;
+            if(iconsSettings) {
+                var listOptions = this.listOptions(iconsSettings);
+                mw.$('.mw-icon-list-settings-icons', listOptions.element).append(list);
+                content = listOptions.element;
+            }
+            var dialog = mw.top().dialog({
+                content: content,
+                height: 'auto',
+                autoHeight: true
+            });
+            $(list).on('_$select', function (e, icon, render) {
+                dialog.result({
+                    icon: icon,
+                    render: render
+                });
+            });
+            if(iconsSettings) {
+                listOptions.$e.on('sizeChange', function (val, originalValue) {
+                    dialog.result({
+                        fontSize: val,
+                        fontSizeOriginal: originalValue
+                    });
+                });
+                listOptions.$e.on('colorChange', function (color) {
+                    dialog.result({
+                        color: color
+                    });
+                });
+            }
+
+            mw.dropdown(list);
+            return dialog;
+        },
+
+        tooltip: function(config, iconsSettings) {
+            if(!config || !config.element) return;
+            var list = this.list();
+            var content = list, listOptions;
+            if(iconsSettings) {
+                listOptions = this.listOptions(iconsSettings);
+                mw.$('.mw-icon-list-settings-icons', listOptions.element).append(list);
+                content = listOptions.element;
+            }
+            var settings = $.extend({}, config, {content: content});
+            var tooltip = mw.tooltip(settings);
+
+            var res = {
+                $e: $({}),
+                tooltip: tooltip,
+                list: list,
+                content: content,
+                iconSettings: listOptions
+            };
+            $(list).on('_$select', function (e, icon, render) {
+                var result = {
+                    icon: icon,
+                    render: render
+                };
+                res.$e.trigger('Result', [result]);
+            });
+            if(iconsSettings) {
+                listOptions.$e.on('sizeChange', function (e, val, originalValue) {
+                    res.$e.trigger('sizeChange', [val, originalValue]);
+                });
+                listOptions.$e.on('colorChange', function (e, color) {
+                    res.$e.trigger('colorChange', [color]);
+                });
+            }
+
+            setTimeout(function () {
+                mw.components._init();
+            }, 78);
+
+            return res;
+        },
+        faIconsInit: function(){
+            var faIconsArray = [];
+            var exc = ['fa-lg', 'fa-2x', 'fa-3x', 'fa-4x', 'fa-5x', 'fa-fw', 'fa-spin', 'fa-pule', 'fa-rotate-90', 'fa-rotate-180', 'fa-rotate-270', 'fa-flip-horizontal', 'fa-flip-vertical'];
+            var faicons = mwd.querySelector('link[href*="/font-awesome.min.css"]');
+            if (!faicons) {
+                faicons = mwd.querySelector('link[href*="/font-awesome.css"]');
+            }
+            if (faicons  && faicons.sheet) {
+                try {
+                    var icons = faicons.sheet.cssRules;
+                    var l = icons.length, i = 0, cls;
+                    for (; i < l; i++) {
+                        sel = icons[i].selectorText;
+                        if (!!sel && sel.indexOf('.fa-') === 0) {
+                            cls = sel.replace(".", '').split(':')[0];
+                            if(exc.indexOf(cls) === -1) {
+                                faIconsArray.push(cls);
+                            }
+
+                        }
+                    }
+                } catch (e) {
+                }
+            }
+            if(faIconsArray.length) {
+                this.addFontIcons({
+                    icons: faIconsArray,
+                    name: 'Font Awesome',
+                    remove: function(target) {
+                        mw.tools.classNamespaceDelete(target, 'fa-');
+                        mw.tools.removeClass(target, 'fa');
+                    },
+                    render: function(icon, target) {
+                        mw.$(target).addClass( 'fa ' + icon );
+                    }
+                });
+            }
+        },
+        mindIconsInit: function(){
+            var mindIcons = [];
+            var faicons = mwd.querySelector('link[href*="/mw-icons-mind/"]');
+            if (faicons != null && faicons.sheet) {
+                try {
+                    var icons = faicons.sheet.cssRules;
+                    var l = icons.length, i = 0;
+                    for (; i < l; i++) {
+                        var sel = icons[i].selectorText;
+                        if (!!sel && sel.indexOf('.mw-micon-') === 0) {
+                            var cls = sel.replace(".", '').split(':')[0];
+                            mindIcons.push('mw-micon- ' + cls);
+                        }
+                    }
+                } catch (e) {
+                }
+            }
+            if(mindIcons.length) {
+                this.addFontIcons({
+                    icons: mindIcons,
+                    name: 'Icons Mind',
+                    remove: function(target) {
+                        mw.tools.classNamespaceDelete(target, 'mw-micon-');
+                        mw.tools.classNamespaceDelete(target, 'icon-');
+                        mw.tools.removeClass(target, 'icon');
+                    },
+
+                    render: function(icon, target) {
+                        mw.$(target).addClass('mw-icon ' + icon);
+                    }
+                });
+            }
+        },
+        _defaultsPrepare: function(c) {
+            if(!mw.materialIcons){
+                $.getScript(mw.settings.modules_url + 'microweber/api/microweber.icons.js', function(data){
+                    $.getScript(mw.settings.modules_url + 'microweber/api/material.icons.js', function(data){
+                        c.call();
+                    });
+                });
+            } else {
+                c.call();
+            }
+        },
+        _defaults: function() {
+            var scope = this;
+            this._defaultsPrepare(function () {
+                icons.mindIconsInit();
+                icons.faIconsInit();
+                icons.addFontIcons({
+                    icons: mw.materialIcons,
+                    name: 'Material Icons',
+                    remove: function(target) {
+                        mw.tools.removeClass(target, 'material-icons');
+                        target.innerHTML = '';
+                    },
+                    render: function(icon, target) {
+                        mw.$(target).addClass('mw-icon material-icons').html(icon);
+
+                    }
+                });
+                icons.addFontIcons({
+                    icons: mw.microweberIcons,
+                    name: 'Microweber Icons',
+                    remove: function(target) {
+                        mw.tools.classNamespaceDelete(target, 'mw-icon-');
+                    },
+                    render: function(icon, target) {
+                        mw.$(target).addClass('mw-icon ' + icon);
+                    }
+                });
+
+            });
+
+        }
+    };
+   $(window).on('load', function () {
+       icons._defaults();
+       icons.availableIcons();
+
+   })
+    mw.icons = icons;
+})();
 
 
 mw.iconSelector = mw.iconSelector || {
@@ -21,8 +560,15 @@ mw.iconSelector = mw.iconSelector || {
        }
        mw.iconSelector.settingsUI(true);
     },
-
+    _parentSynced: false,
+    parentSync: function () {
+        if(!this._parentSynced && mw.top() !== mw && mw.top().iconSelector) {
+            this._parentSynced = true;
+            mw.iconSelector.iconFontClasses = $.merge( mw.iconSelector.iconFontClasses, mw.top().iconSelector.iconFontClasses );
+        }
+    },
     init: function () {
+        this.parentSync();
         if (mw.iconSelector.iconFontClasses.length == 0) {
             try {
                 var uicss = mwd.querySelector('link[href*="/ui.css"]'), icons;
@@ -361,6 +907,38 @@ mw.iconSelector = mw.iconSelector || {
       mw.$(mw.iconSelector.searchelement).appendTo('.tooltip-icon-picker')
     },
     iconDropdown:function(selector, options){
+        var $el = mw.$(selector);
+        var el = $el[0];
+        if(!el) return;
+        options = options || {};
+        options.mode = options.mode || 'absolute';
+        var btn = mwd.createElement('span');
+        btn.className = 'mw-ui-btn';
+        var btnIcon;
+        $(btn).append(options.value || '<span></span>');
+        btnIcon = btn.firstChild;
+        btn.appendChild(mwd.createTextNode('Choose icon'));
+
+        btn.onclick = function(){
+            var dialog = mw.top().icons.dialog(false);
+            mw.top().$(dialog).on('Result', function(e, res){
+                if(options.onchange) {
+                    var elVal = document.createElement('span');
+                    res.render(res.icon, elVal);
+                    res.render(res.icon, btn.firstChild);
+                    options.onchange.call(undefined, elVal.outerHTML, el)
+                }
+                dialog.remove();
+            });
+        };
+        $el.empty().append(btn);
+        return {
+            value: function (val) {
+                mw.$(btn.firstChild).replaceWith(val);
+            }
+        }
+    },
+    _iconDropdown:function(selector, options){
         var el = mw.$(selector)[0];
         if(!el) return;
         options = options || {}
@@ -502,4 +1080,7 @@ mw.iconSelector = mw.iconSelector || {
 
 
     }
-}
+};
+$(document).ready(function () {
+    mw.iconSelector.init();
+});

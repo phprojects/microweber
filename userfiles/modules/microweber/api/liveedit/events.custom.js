@@ -1,22 +1,41 @@
 mw.liveedit.handleCustomEvents = function() {
-    mw.on('ElementOver ModuleOver', function(e, target){
+    mw.on('moduleOver ElementOver', function(e, etarget, oevent){
+        var target = mw.tools.firstParentOrCurrentWithAnyOfClasses(oevent.target, ['element', 'module']);
         if(target.id){
             mw.liveEditSelector.active(true);
             mw.liveEditSelector.setItem(target, mw.liveEditSelector.interactors);
         }
     });
 
-    mw.on("ImageClick ElementClick ModuleClick", function(e, el, originalEvent){
+    /*mw.on("ImageClick ElementClick ModuleClick", function(e, el, originalEvent){
         if(originalEvent) {
             el = mw.tools.firstParentOrCurrentWithAnyOfClasses(originalEvent.target, ['element', 'module'])
         }
-        if(el.id) {
-            if(mw.liveEditSelector.selected && mw.liveEditSelector.selected[0] === el) {
-                return;
-            }
-            mw.liveEditSelector.select(el);
+        mw.liveEditSelector.select(el);
+        if(mw.tools.hasClass(el, 'module')){
+            mw.liveEditSelector.activeModule = el;
         }
+    });*/
+
+    mw.$(document.body).on('click', function (e) {
+        var target = e.target;
+        var can = mw.tools.firstParentOrCurrentWithAnyOfClasses(target, [
+           'edit', 'module', 'element'
+        ]);
+        if(can) {
+            var toSelect = mw.tools.firstNotInlineLevel(target);
+
+            mw.liveEditSelector.select(toSelect);
+
+            if(mw.liveEditDomTree) {
+                mw.liveEditDomTree.select(mw.wysiwyg.validateCommonAncestorContainer(target));
+
+            }
+        }
+
+
     });
+
 
     mw.on("DragHoverOnEmpty", function(e, el) {
         if ($.browser.webkit) {
@@ -31,8 +50,7 @@ mw.liveedit.handleCustomEvents = function() {
         }
     });
     mw.on("IconElementClick", function(e, el) {
-        mw.iconSelector._activeElement = el;
-        mw.iconSelector.settingsUI();
+        mw.liveedit.widgets.iconEditor(el);
         setTimeout(function () {
             mw.wysiwyg.contentEditable(el, false);
         })
@@ -41,9 +59,7 @@ mw.liveedit.handleCustomEvents = function() {
     mw.on("ComponentClick", function(e, node, type){
 
         if (type === 'icon'){
-            mw.iconSelector._activeElement = node;
-            mw.iconSelector.uiHTML();
-            mw.iconSelector.settingsUI();
+            mw.liveedit.widgets.iconEditor(node);
             return;
 
         }
@@ -107,7 +123,6 @@ mw.liveedit.handleCustomEvents = function() {
         if (mw.liveedit && mw.liveedit.inline) {
             mw.liveedit.inline.setActiveCell(el, e);
             var td_parent_table = mw.tools.firstParentWithTag(el, 'table');
-            console.log(td_parent_table)
             if (td_parent_table) {
                 mw.liveedit.inline.tableController(td_parent_table);
             }
@@ -159,11 +174,10 @@ mw.liveedit.handleCustomEvents = function() {
                 });
                 setTimeout(function(){
                     mw.$("#moduleinbetween").fadeOut(function(){
-                        mw.$(this).remove()
-                    })
-                }, 3000)
+                        mw.$(this).remove();
+                    });
+                }, 3000);
             }
-        }, 1000)
-
+        }, 1000);
     });
-}
+};

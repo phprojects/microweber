@@ -78,7 +78,7 @@ class MailSubscriber
 	}
 
 	public function subscribe() {
-		
+
 		if (!empty($this->subscribeFrom)) {
 			
 			if (get_option('use_integration_with_flexmail', $this->subscribeFrom) == 'y') {
@@ -93,17 +93,17 @@ class MailSubscriber
 	}
 	
 	private function _flexmail() {
-		
+
 		$settings = get_mail_provider_settings('flexmail');
 		
 		if (!empty($settings)) {
-			
-			$checkSubscriber = get_mail_subscriber($this->email, $this->subscribeSource, $this->subscribeSourceId, 'flexmail');
+
+		/*	$checkSubscriber = get_mail_subscriber($this->email, $this->subscribeSource, $this->subscribeSourceId, 'flexmail');
 			
 			if (!empty($checkSubscriber)) {
-				// echo 'Email '.$this->email.' allready subscribed for flexmail.';
+				echo 'Email '.$this->email.' allready subscribed for flexmail.';
 				return;
-			}
+			}*/
 			
 			try {
 				$config = new \Finlet\flexmail\Config\Config();
@@ -139,10 +139,12 @@ class MailSubscriber
 				}
 				
 				$response = $flexmail->service("Contact")->create(array(
-					"mailingListId"    => 10000,
+					"mailingListId"    => $settings['mailing_list_id'],
 					"emailAddressType" => $contact
 				));
-				
+
+				//var_dump($response);
+
 				save_mail_subscriber($this->email, $this->subscribeSource, $this->subscribeSourceId, 'flexmail');
 			
 			} catch (\Exception $e) {
@@ -150,7 +152,7 @@ class MailSubscriber
 					save_mail_subscriber($this->email, $this->subscribeSource, $this->subscribeSourceId, 'flexmail');
 				}
 				// Error
-				// dd($e);
+				 //dd($e);
 			}
 		}
 	}
@@ -171,16 +173,18 @@ class MailSubscriber
 			try {
 				$groupsApi = (new MailerLite($settings['api_key']))->groups();
 				$allGroups = $groupsApi->get();
-				
-				$groupNames = array();
+
+                $groupId = false;
 				foreach($allGroups as $group) {
-					$groupNames[] = $group->name;
-					$groupId = $group->id;
-				}
+                    if ($group->name == $this->listTitle) {
+                        $groupId = $group->id;
+                        break;
+                    }
+                }
 				
-				if (!in_array($this->listTitle, $groupNames)) {
-					$newGroup = $groupsApi->create(['name' => $this->listTitle]);
-					$groupId = $newGroup->id;
+				if (!$groupId) {
+					$createNewGroup = $groupsApi->create(['name' => $this->listTitle]);
+					$groupId = $createNewGroup->id;
 				}
 				
 				$subscriber = [

@@ -3,8 +3,8 @@
 $require_terms = get_option('require_terms', $params['module']);
 
 if ($params['id'] == 'edit_template_iframe') {
-	include 'edit_template_iframe.php';
-	return;
+    include 'edit_template_iframe.php';
+    return;
 }
 
 $module_template = get_option('data-template', $params['id']);
@@ -27,6 +27,7 @@ if (isset($template_file) and is_file($template_file) != false) {
     include($template_file);
 }
 ?>
+
 <script type="text/javascript">
 
 
@@ -35,7 +36,7 @@ if (isset($template_file) and is_file($template_file) != false) {
 
         mw.newsletters_is_saving = false;
 
-        if(mw.$('form#newsletters-form-<?php print $params['id'] ?>').length){
+        if (mw.$('form#newsletters-form-<?php print $params['id'] ?>').length) {
             mw.$('form#newsletters-form-<?php print $params['id'] ?>').append('<input type="hidden" name="mod_id" value="<?php print $params['id'] ?>" />');
         }
 
@@ -53,10 +54,11 @@ if (isset($template_file) and is_file($template_file) != false) {
 
                     mw.response(mw.$('form#newsletters-form-<?php print $params['id'] ?>'), resp);
                     if (typeof(resp.success) != 'undefined') {
-                        mw.$('form#newsletters-form-<?php print $params['id'] ?> .hide-on-success').hide();
+                        mw.$('form#newsletters-form-' + id + ' .hide-on-success').hide();
+                        mw.$('form#newsletters-form-' + id + ' .show-on-success').show();
                     }
                     if (typeof(resp.redirect) != 'undefined') {
-                       window.location.href = resp.redirect;
+                        window.location.href = resp.redirect;
                     }
 
 
@@ -71,3 +73,5 @@ if (isset($template_file) and is_file($template_file) != false) {
     });
 
 </script>
+
+

@@ -183,6 +183,17 @@ body.mw-live-edit .plain-text {
     overflow: auto;
     max-height: 260px;
 }
+.mw-live-edit-tab-title h4,
+.mw-live-edit-tab-title h6,
+.modules-list li,
+.modules-list h1,
+.modules-list h2,
+.modules-list h3,
+.modules-list h4,
+.modules-list h5,
+.modules-list h6{
+    color: #333;
+}
 
 
 
@@ -1124,6 +1135,15 @@ div.ts_action {
 *****************************/
 
 #live_edit_toolbar_holder,
+#live_edit_toolbar_holder *{
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+#live_edit_toolbar_holder,
 #live_edit_toolbar {
     width: 100%;
 
@@ -1785,7 +1805,7 @@ body.dragStart .no-drop {
     cursor: not-allowed;
 }
 
-.sortable-placeholder, .ui-sortable-placeholder, .ui-state-highlight, .sortable-dragging {
+.sortable-placeholder, .ui-sortable-placeholder, .sortable-dragging {
     padding-top: 5px;
     padding-bottom: 5px;
     margin-top: 10px;
@@ -4554,23 +4574,55 @@ h4.element,
 h5.element,
 h6.element,
 p.element,
-div.element,
-section.element{
+div.element{
     min-height: 15px;
 }
 
 
-#mw-plus-tooltip-selector .mw-ui-searchfield{
+.plus-modules-list .mw-ui-searchfield{
     width: 100%;
     height: auto;
     border: 1px solid #E6E6E6;
     -webkit-appearance: textfield;
     appearance: textfield;
 }
-#mw-plus-tooltip-selector .mw-ui-searchfield:focus{
+.plus-modules-list .mw-ui-searchfield:focus{
     border-color: #c6c6c6;
 }
-#mw-plus-tooltip-selector .mw-ui-btn-nav{
-    display: none;
+
+
+
+.mw-tooltip .mw-field input,
+.mw-tooltip .mw-ui-field,
+.mw-defaults .mw-field input,
+.mw-defaults .mw-ui-field{
+    border-radius: 2px;
 }
+
+.mw-layout-plus{
+    display: block;
+    position: absolute;
+    z-index: 10;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    background-color: #e0e0e0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M24 10h-10v-10h-4v10h-10v4h10v10h4v-10h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 12px 12px;
+    cursor: pointer;
+}
+.mw-layout-plus:hover{
+    background-color: #0086db;
+}
+
+.mw-layout-plus-top{
+    border-radius: 5px 5px 0 0 ;
+}
+.mw-layout-plus-bottom{
+    border-radius: 0 0 5px 5px;
+}
+
+
 

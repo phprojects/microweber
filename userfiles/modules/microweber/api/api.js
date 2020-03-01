@@ -1,14 +1,30 @@
-if(!Object.assign) {
-     Object.assign =  function assign(target, source) {
-        var result = {}
-        for (var i in target) result[i] = target[i]
-        for (var i in source) result[i] = source[i]
-        return result
-      }
+if (typeof Object.assign !== 'function') {
+    Object.defineProperty(Object, "assign", {
+        value: function assign(target) {
+            'use strict';
+            if (target === null || target === undefined) {
+                throw new TypeError('Cannot convert undefined or null to object');
+            }
+            var to = Object(target);
+            for (var index = 1; index < arguments.length; index++) {
+                var nextSource = arguments[index];
+                if (nextSource !== null && nextSource !== undefined) {
+                    for (var nextKey in nextSource) {
+                        if (Object.prototype.hasOwnProperty.call(nextSource, nextKey)) {
+                            to[nextKey] = nextSource[nextKey];
+                        }
+                    }
+                }
+            }
+            return to;
+        },
+        writable: true,
+        configurable: true
+    });
 }
 
 
-if (typeof jQuery == 'undefined') {
+if (!window.jQuery) {
 
 <?php
 
@@ -34,16 +50,15 @@ var _jqxhr = jQuery.ajax;
 
 
 
-jQuery.ajax = $.ajax = function(url, options){
+jQuery.ajax = function(url, options){
     options = options || {};
-    settings = {};
+    var settings = {};
     if(typeof url === 'object'){
         $.extend(settings, url);
     }
     else{
         settings.url = url;
     }
-    $.extend(settings,options);
     if(typeof settings.success === 'function'){
         settings._success = settings.success;
         delete settings.success;
@@ -62,6 +77,7 @@ jQuery.ajax = $.ajax = function(url, options){
             }
         };
     }
+    settings = $.extend({}, settings, options);
     var xhr = _jqxhr(settings);
     return xhr;
 };
@@ -106,14 +122,6 @@ jQuery.cachedScript = function( url, options ) {
 };
 
 
-
-if(typeof mw === 'undefined'){
-    mw = {}
-}
-
-
-
-
 mw.version = "<?php print MW_VERSION; ?>";
 
 mw.pauseSave = false;
@@ -123,14 +131,14 @@ mw.askusertostay = false;
   if (top === self){
     window.onbeforeunload = function() {
       if(mw.askusertostay){
-        mw.notification.warning("<?php _e("You have unsaved changes"); ?>!");
+        mw.notification.warning("<?php _ejs("You have unsaved changes"); ?>!");
         return "<?php _e("You have unsaved changes"); ?>!";
       }
     }
   }
 
   warnOnLeave = function(){
-     mw.tools.confirm("<?php _e("You have unsaved changes! Are you sure"); ?>?");
+     mw.tools.confirm("<?php _ejs("You have unsaved changes! Are you sure"); ?>?");
   };
 
   mw.module = {}
@@ -221,6 +229,7 @@ mw.askusertostay = false;
     url = url.contains('//') ? url : (t !== "css" ? "<?php print( mw_includes_url() ); ?>api/" + url  :  "<?php print( mw_includes_url() ); ?>css/" + url);
     if(!urlModified) toPush = url;
     if (!~mw.required.indexOf(toPush)) {
+
       mw.required.push(toPush);
       url = url.contains("?") ?  url + '&mwv=' + mw.version : url + "?mwv=" + mw.version;
       if(document.querySelector('link[href="'+url+'"],script[src="'+url+'"]') !== null){
@@ -544,14 +553,14 @@ mw.getScripts = function (array, callback) {
     }
     var url = typeof obj.url !== 'undefined' ? obj.url : mw.settings.site_url+'module/';
     var selector = typeof obj.selector !== 'undefined' ? obj.selector : '';
-    var params =  typeof obj.params !=='undefined' ? obj.params : {};
+    var params =  typeof obj.params !== 'undefined' ? obj.params : {};
     var to_send = params;
     if(typeof $(obj.selector)[0] === 'undefined') {
         mw.pauseSave = false;
         mw.on.DOMChangePause = false;
         return false;
     }
-    if(mw.session != undefined){
+    if(mw.session){
         mw.session.checkPause = true;
     }
     var $node = $(obj.selector);
@@ -562,7 +571,7 @@ mw.getScripts = function (array, callback) {
 
      // wait between many reloads
       if (node.id) {
-          if ( mw.temp_reload_module_queue_holder.indexOf(node.id) == -1){
+          if ( mw.temp_reload_module_queue_holder.indexOf(node.id) === -1){
           mw.temp_reload_module_queue_holder.push(node.id);
               setTimeout(function() {
                   var reload_index = mw.temp_reload_module_queue_holder.indexOf(node.id);
@@ -669,7 +678,7 @@ mw.getScripts = function (array, callback) {
         mw.on.moduleReload(id, "", true);
         mw.trigger('moduleLoaded');
       }
-      if (mw.on != undefined) {
+      if (mw.on) {
         mw.on.DOMChangePause = false;
       }
       mw.tools.removeClass(mwd.body, 'loading');
@@ -684,17 +693,18 @@ mw.getScripts = function (array, callback) {
         mw.pauseSave = false;
     });
     return xhr;
-  }
+  };
 
 
   api = function(action, params, callback){
+      var obj;
     var url = mw.settings.api_url + action;
     var type = typeof params;
     if(type === 'string'){
-        var obj = mw.serializeFields(params);
+        obj = mw.serializeFields(params);
     }
     else if(type === 'object' && !jQuery.isArray(params)){
-        var obj = params;
+        obj = params;
     }
     else{
       obj = {};
@@ -738,7 +748,7 @@ mw.getScripts = function (array, callback) {
 
   mw.$ = function(selector, context) {
     if(typeof selector === 'object'){ return jQuery(selector); }
-    var context = context || mwd;
+    context = context || mwd;
     if (typeof mwd.querySelector !== 'undefined') {
       if (typeof selector === 'string') {
         try {
@@ -755,16 +765,17 @@ mw.getScripts = function (array, callback) {
   };
 
   mw.get = function(action, params, callback){
+      var obj;
     var url = mw.settings.api_url + action;
     var type = typeof params;
     if(type === 'string'){
-        var obj = mw.serializeFields(params);
+        obj = mw.serializeFields(params);
     }
     else if(type.constructor === {}.constructor ){
-        var obj = params;
+        obj = params;
     }
     else{
-      var obj = {};
+      obj = {};
     }
     $.post(url, obj)
         .success(function(data) { return typeof callback === 'function' ? callback.call(data) : data;   })
@@ -792,7 +803,7 @@ mw.getScripts = function (array, callback) {
                     + "input[type='password'], input[type='hidden'], input[type='datetime'], input[type='date'], input[type='time'], "
                     +"input[type='email'],  textarea, select, input[type='checkbox']:checked, input[type='radio']:checked, "
                     +"input[type='checkbox'][data-value-checked][data-value-unchecked]";
-        var data = {}
+        var data = {};
         $(fields, el).each(function(){
             if(!this.name){
                 console.warn('Name attribute missing on ' + this.outerHTML);
@@ -822,7 +833,7 @@ mw.response = function(form, data, messages_at_the_bottom){
       return false;
     }
 
-    var data = mw.tools.toJSON(data);
+    data = mw.tools.toJSON(data);
     if(typeof data === 'undefined'){
           return false;
       }
@@ -842,41 +853,41 @@ mw.response = function(form, data, messages_at_the_bottom){
     else{
         return false;
     }
-}
+};
 
 mw._response = {
   error:function(form, data, _msg){
-    var form = mw.$(form);
+    form = mw.$(form);
     var err_holder = mw._response.msgHolder(form, 'error');
     mw._response.createHTML(data.error, err_holder);
   },
   success:function(form, data, _msg){
-    var form = mw.$(form);
+    form = mw.$(form);
     var err_holder = mw._response.msgHolder(form, 'success');
     mw._response.createHTML(data.success, err_holder);
   },
   warning:function(form, data, _msg){
-    var form = mw.$(form);
+    form = mw.$(form);
     var err_holder = mw._response.msgHolder(form, 'warning');
     mw._response.createHTML(data.warning, err_holder);
   },
   msgHolder : function(form, type, method){
-    var method = method || 'append';
+    method = method || 'append';
     var err_holder = form.find(".mw-checkout-response:first");
     var err_holder2 = form.find(".alert:first");
-    if(err_holder.length==0){
+    if(err_holder.length === 0){
         err_holder = err_holder2;
     }
-    if(err_holder.length==0){
-    var err_holder = mwd.createElement('div');
-    form[method](err_holder);
+    if(err_holder.length === 0){
+        err_holder = mwd.createElement('div');
+        form[method](err_holder);
     }
 
     var bootrap_error_type = 'default';
-    if(type == 'error'){
-    bootrap_error_type = 'danger';
-    } else if(type == 'done'){
-    bootrap_error_type = 'info';
+    if(type === 'error'){
+        bootrap_error_type = 'danger';
+    } else if(type === 'done'){
+        bootrap_error_type = 'info';
     }
 
 
@@ -911,7 +922,7 @@ mw._response = {
 mw.user = {
   isLogged:function(callback){
     $.post(mw.settings.api_url + 'is_logged', function(data){
-        var isLogged =  (data == 'true');
+        var isLogged =  (data === 'true');
         callback.call(isLogged, isLogged);
     });
   }
@@ -926,25 +937,35 @@ mw.parent = function(){
     }
     return window.mw;
 };
+
 mw.top = function(){
+  if(!!mw.__top){
+      return mw.__top;
+  }
   var getLastParent = function() {
-      var curr = window.parent;
+      var result = window;
+      var curr = window;
       while(curr && mw.tools.canAccessWindow(curr) && curr.mw){
-          parents.push(curr);
+          result = curr;
           curr = curr.parent;
+
       }
-      return curr.mw;
+      mw.__top = curr.mw;
+      return result.mw;
   };
   if(window === top){
+    mw.__top = window.mw;
     return window.mw;
   } else {
         if(mw.tools.canAccessWindow(top) && top.mw){
+            mw.__top = top.mw;
             return top.mw;
         } else{
             if(window.top !== window.parent){
                 return getLastParent();
             }
             else{
+                mw.__top = window.mw;
                 return window.mw;
             }
         }

@@ -106,7 +106,7 @@ mw.instruments = {
               url:' link_editor',
               height: 'auto',
               autoHeight: true,
-              width: 700
+              width: 800
           });
           frame = dialog.iframe;
         } else {
@@ -136,13 +136,17 @@ mw.instruments = {
         };
         var settings = $.extend({}, defaults, config);
         var frame, dialog;
+        var url = 'file_picker';
+        if(config.types) {
+            url += '?types=' + config.types
+        }
         if(settings.mode === 'inline'){
             frame = this._create({
-                url: 'file_picker'
+                url: url
             });
         } else if(settings.mode === 'dialog') {
             dialog = mw.dialogIframe({
-                url:' file_picker',
+                url:url,
                 height: 'auto',
                 autoHeight: true
             });

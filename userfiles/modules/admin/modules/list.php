@@ -53,7 +53,7 @@ if (isset($is_elements) and $is_elements == true) {
     $elements_from_template = mw()->layouts_manager->get_elements_from_current_site_template();
     if (!empty($elements_from_template)) {
 
-        $modules = array_merge($modules, $elements_from_template);
+        $modules = array_merge($elements_from_template,$modules);
 
     }
 
@@ -488,7 +488,7 @@ if (isset($_COOKIE['recommend']) and is_string($_COOKIE['recommend']) and isset(
 
   <?php endif; ?>
 
-                        <?php if ($module_item['icon']): ?>
+                        <?php if (isset($module_item['icon']) AND $module_item['icon']): ?>
                             <span class="mw_module_image">
         <span class="mw_module_image_holder">
             <img

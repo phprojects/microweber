@@ -1,7 +1,7 @@
 <?php
 
 event_bind('mw.mail_subscribe', function ($params) {
-	
+
 	$email = false;
 	$name = false;
 	$message = false;
@@ -43,15 +43,16 @@ event_bind('mw.mail_subscribe', function ($params) {
 		if ($kParamLower == 'phone') {
 			$phone = $kValue;
 		}
-		if ($kParamLower == 'name' || $kParamLower == 'first_name') {
+		if ($kParamLower == 'name' || $kParamLower == 'firstname' || $kParamLower == 'first_name' || $kParamLower == 'firstName') {
 			$name = $kValue;
 		}
-		if ($kParamLower == 'last_name' || $kParamLower == 'lastname') {
+		if ($kParamLower == 'last_name' || $kParamLower == 'lastname' || $kParamLower == 'lastName') {
 			$lastName = $kValue;
 		}
 	}
-	
+
 	if ($email) {
+
 		$provider = new \Microweber\Utils\MailSubscriber();
 		
 		if (isset($params['list_id'])) {
@@ -104,7 +105,7 @@ event_bind('mw.mail_subscribe', function ($params) {
 				'value'=>$value
 			));
 		}
-		
+
 		$provider->subscribe();
 	}
 	
@@ -177,7 +178,12 @@ function get_mail_provider_settings($providerName)
 	only_admin_access();
 	
 	$mailProvider = get_mail_provider($providerName);
-	return json_decode($mailProvider['provider_settings'], TRUE);
+
+	if(is_array($mailProvider ) and isset($mailProvider['provider_settings'])){
+        return json_decode($mailProvider['provider_settings'], TRUE);
+
+    }
+
 }
 
 

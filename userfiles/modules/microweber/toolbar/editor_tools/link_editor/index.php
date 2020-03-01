@@ -1,7 +1,6 @@
 <script>
     mw.require("forms.js");
     mw.require("files.js");
-    mw.require("tools.js");
     mw.require("instruments.js");
 </script>
 
@@ -18,7 +17,7 @@
             thismodal.result({
                 url: args[1],
                 target: args[2],
-                text: args[3]
+                text: args[3],
             }, true);
         }
         thismodal.remove()
@@ -160,7 +159,6 @@
     }
 
     #email_field, #customweburl {
-        float: left;
         width: 275px;
         margin-right: 15px;
         margin-bottom: 15px;
@@ -189,6 +187,9 @@
     #insert_link .mw-dropdown-content{
         position: relative;
     }
+    .link-tree{
+        padding-top: 10px;
+    }
 
 </style>
 
@@ -203,14 +204,67 @@
     </div>
     <div class="">
         <div class="mw-ui-btn-nav mw-ui-btn-nav-tabs">
-            <a class="mw-ui-btn active" href="javascript:;"><?php _e("Website URL"); ?></a>
             <a class="mw-ui-btn" href="javascript:;"><?php _e("Page from My Website"); ?></a>
+            <a class="mw-ui-btn active" href="javascript:;"><?php _e("Website URL"); ?></a>
+            <a class="mw-ui-btn" href="javascript:;"><?php _e("Post"); ?>, <?php _e("Category"); ?></a>
             <a class="mw-ui-btn" href="javascript:;"><?php _e("File"); ?></a>
             <a class="mw-ui-btn" href="javascript:;"><?php _e("Email"); ?></a>
             <a class="mw-ui-btn available_elements_tab_show_hide_ctrl" href="javascript:;"><?php _e("Page Section"); ?></a>
             <a class="mw-ui-btn page-layout-btn" style="display: none;" href="javascript:;"><?php _e("Page Layout"); ?></a>
         </div>
         <div class="mw-ui-box mw-ui-box-content" id="tabs">
+            <div class="tab">
+                <?php
+                $unique = uniqid('link-tree-');
+                ?>
+                <div class="mw-field">
+                    <span class="mw-field-prepend"><i class="mw-icon-magnify"></i></span>
+                    <input id="link-tree-search" type="text" placeholder="<?php _e('Search'); ?>">
+                </div>
+                <div class="link-tree" id="<?php print $unique; ?>"></div>
+                <script>
+                    mw.require('tree.js')
+                </script>
+                <script>
+                    var pagesTreeRefresh = function(){
+                        $.get("<?php print api_url('content/get_admin_js_tree_json'); ?>", function(data){
+                            pagesTree = new mw.tree({
+                                data: data,
+                                element: $("#<?php print $unique; ?>")[0],
+                                sortable: false,
+                                selectable: true,
+                                singleSelect: true
+                            });
+                            $(pagesTree).on("selectionChange", function(e, selection){
+                                var obj = selection[0];
+                                setACValue(obj.url, '_self', obj.title, obj)
+                            });
+                            $(pagesTree).on("ready", function(){
+                                $('#link-tree-search').on('input', function(){
+                                    var val = this.value.toLowerCase().trim();
+                                    if(!val){
+                                        pagesTree.showAll();
+                                    }
+                                    else{
+                                        pagesTree.options.data.forEach(function(item) {
+                                            if(item.title.toLowerCase().indexOf(val) === -1) {
+                                                pagesTree.hide(item);
+                                            } else{
+                                                pagesTree.show(item);
+                                            }
+                                        });
+                                    }
+                                });
+                            })
+                        });
+                    };
+
+                    mw.$(document).ready(function () {
+                        pagesTreeRefresh();
+                    });
+
+                </script>
+            </div>
             <div class="tab" style="display: block">
                 <div class="media-search-holder">
                     <div class="mw-ui-field-holder">
@@ -222,6 +276,7 @@
 
                 </div>
             </div>
+
             <div class="tab">
                 <div class="media-search-holder">
                     <div data-value="<?php print site_url(); ?>" id="insert_link_list" class="mw-dropdown mw-dropdown-default active">

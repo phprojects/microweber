@@ -2,10 +2,10 @@
 <script type="text/javascript">
     $(document).ready(function () {
         mw.options.form('.<?php print $config['module_class'] ?>,.mw_adm_cont_head_change_holder', function () {
-            mw.notification.success("<?php _e("Advanced settings updated"); ?>.");
+            mw.notification.success("<?php _ejs("Advanced settings updated"); ?>.");
         });
         mw.options.form('.<?php print $config['module_class'] ?>,.mw_adm_robots_txt_change_holder', function () {
-            mw.notification.success("<?php _e("Advanced settings updated"); ?>.");
+            mw.notification.success("<?php _ejs("Advanced settings updated"); ?>.");
         });
     });
 
@@ -30,11 +30,11 @@
 
     function clearMwCache() {
         mw.clear_cache();
-        mw.notification.success("<?php _e("The cache was cleared"); ?>.");
+        mw.notification.success("<?php _ejs("The cache was cleared"); ?>.");
     }
     function reloadMwDB() {
         api('mw_post_update');
-        mw.notification.success("<?php _e("The DB was reloaded"); ?>.");
+        mw.notification.success("<?php _ejs("The DB was reloaded"); ?>.");
     }
 
 </script>
@@ -71,7 +71,7 @@
                 </div>
 
                 <div class="mw-ui-col">
-                    <span class="box-title"><i class="mai-code"></i><br/>Development settings</span>
+                    <span class="box-title"><i class="mai-code"></i><br/><?php _e('Development settings'); ?></span>
                     <ul>
                         <li><a class="mw-ui-btn"
                                href="javascript:settings_load_module('Developer tools','admin/developer_tools')"><?php _e('Developer tools'); ?></a>
@@ -83,7 +83,7 @@
                 </div>
 
                 <div class="mw-ui-col">
-                    <span class="box-title"><i class="mai-setting2"></i><br/>Other settings</span>
+                    <span class="box-title"><i class="mai-setting2"></i><br/><?php _e("Other settings"); ?></span>
                     <ul>
                         <li><a class="mw-ui-btn"
                                href="javascript:settings_load_module('Internal settings','settings/group/internal')"><?php _e("Internal settings"); ?></a>
@@ -92,12 +92,12 @@
                                href="javascript:settings_load_module('Live Edit settings','settings/group/live_edit')"><?php _e("Live Edit settings"); ?></a>
                         </li>
                         <li><a class="mw-ui-btn"
-                               href="javascript:settings_load_module('Statistics settings','site_stats/settings')"><?php print("Statistics settings"); ?></a>
+                               href="javascript:settings_load_module('Statistics settings','site_stats/settings')"><?php _e("Statistics settings"); ?></a>
                         </li>
                         <?php if (is_module('shop') and get_option('shop_disabled', 'website') == "y") { ?>
 
                             <li><a class="mw-ui-btn"
-                                   href="javascript:settings_load_module('Shop settings','shop/orders/settings/enable_disable_shop')"><?php print("Shop settings"); ?></a>
+                                   href="javascript:settings_load_module('Shop settings','shop/orders/settings/enable_disable_shop')"><?php _e("Shop settings"); ?></a>
                             </li>
 
                         <?php } ?>

@@ -52,15 +52,11 @@ mw.liveedit.editors = {
                   }, 33);
               }
           } else {
-              if (!mw.tools.hasParentsWithClass(e.target, 'mw_small_editor')) {
-
-                  if (typeof(mw.smallEditor) != 'undefined') {
-
+              if (mw.smallEditor && !mw.tools.hasParentsWithClass(e.target, 'mw_small_editor')) {
                       mw.smallEditorCanceled = true;
                       mw.smallEditor.css({
                           visibility: "hidden"
                       });
-                  }
               }
           }
           setTimeout(function() {
@@ -99,7 +95,8 @@ mw.liveedit.editors = {
               mw.smallEditorCanceled = true;
           }
       });
-      mw.$("#live_edit_toolbar, #mw_small_editor").on("mousedown", function(e) {
+      mw.$("#live_edit_toolbar, #mw_small_editor").on("mousedown touchstart", function(e) {
+          e.preventDefault();
           mw.$(".wysiwyg_external").empty()
           if (e.target.nodeName !== 'INPUT' && e.target.nodeName !== 'SELECT' && e.target.nodeName !== 'OPTION' && e.target.nodeName !== 'CHECKBOX') {
               e.preventDefault();
