@@ -33,6 +33,7 @@ class ZipReader extends DefaultReader
 		$unzip = new \Microweber\Utils\Unzip();
 		$unzip->extract($this->file, $backupLocation, true);
 
+
 		if ($backupLocation != false and is_dir($backupLocation)) {
 			BackupImportLogger::setLogInfo('Media restored!');
 			$copy = $this->_cloneDirectory($backupLocation, userfiles_path());
@@ -195,12 +196,15 @@ class ZipReader extends DefaultReader
 			return;
 		}
 
-		$files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
-
-		foreach ($files as $fileinfo) {
-			$todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
-			@$todo($fileinfo->getRealPath());
-		}
+		try {
+            $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST);
+            foreach ($files as $fileinfo) {
+                $todo = ($fileinfo->isDir() ? 'rmdir' : 'unlink');
+                @$todo($fileinfo->getRealPath());
+            }
+        } catch (\Exception $e) {
+		    // Cant remove files from this path
+        }
 
 		@rmdir($dir);
 	}

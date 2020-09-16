@@ -10,11 +10,14 @@ class BackupManager
 	public $exportData = ['categoryIds'=>[], 'contentIds'=>[], 'tables'=>[]];
 	public $exportType = 'json';
 	public $exportIncludeMedia = false;
+	public $exportIncludeModules = false;
+	public $exportIncludeTemplates = false;
 	public $importType = false;
 	public $importFile = false;
 	public $importBatch = true;
 	public $importOvewriteById = false;
 	public $importLanguage = false;
+	public $deleteOldContent = false;
 
 	public function __construct()
 	{
@@ -67,6 +70,14 @@ class BackupManager
 		$this->exportIncludeMedia = $includeMedia;
 	}
 
+	public function setExportIncludeModules($includeModules) {
+		$this->exportIncludeModules = $includeModules;
+	}
+
+	public function setExportIncludeTemplates($includeTemplates) {
+		$this->exportIncludeTemplates = $includeTemplates;
+	}
+
 	/**
 	 * Set import file format
 	 * @param string $type
@@ -83,6 +94,10 @@ class BackupManager
 	public function setImportOvewriteById($overwrite) {
 		$this->importOvewriteById = $overwrite;
 	}
+
+	public function setToDeleteOldContent($delete) {
+	    $this->deleteOldContent = $delete;
+    }
 
 	/**
 	 * Set import file path
@@ -120,6 +135,8 @@ class BackupManager
 			$export->setExportData($this->exportData);
 			$export->setExportAllData($this->exportAllData);
 			$export->setIncludeMedia($this->exportIncludeMedia);
+			$export->setIncludeModules($this->exportIncludeModules);
+			$export->setIncludeTemplates($this->exportIncludeTemplates);
 
 			return $export->start();
 
@@ -153,6 +170,7 @@ class BackupManager
 			$writer = new DatabaseWriter();
 			$writer->setContent($content['data']);
 			$writer->setOverwriteById($this->importOvewriteById);
+			$writer->setDeleteOldContent($this->deleteOldContent);
 
 			if ($this->importBatch) {
 				$writer->runWriterWithBatch();
